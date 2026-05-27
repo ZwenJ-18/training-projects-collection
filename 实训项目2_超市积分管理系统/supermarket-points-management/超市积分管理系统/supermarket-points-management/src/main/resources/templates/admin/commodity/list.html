@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>商品列表 - 超市积分管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f5f7fa;
+            font-family: "Microsoft YaHei", sans-serif;
+            padding: 30px 0;
+        }
+        .container {
+            max-width: 1300px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            padding: 30px;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #222;
+        }
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+            vertical-align: middle;
+        }
+        .table th {
+            background: linear-gradient(135deg, #4361EE, #3A0CA3);
+            color: #fff;
+        }
+        .commodity-img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4361EE, #3A0CA3);
+            border: none;
+        }
+        .stock-warning { color: #dc3545; font-weight: bold; }
+        .status-on { background: #28a745; color:#fff; padding:4px 10px; border-radius:20px; font-size:12px; }
+        .status-off { background: #dc3545; color:#fff; padding:4px 10px; border-radius:20px; font-size:12px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>商品列表</h1>
+
+    <div class="d-flex gap-2 mb-3">
+        <a href="/admin/commodity/new" class="btn btn-primary">新增商品</a>
+        <a href="/admin/dashboard" class="btn btn-secondary">返回首页</a>
+    </div>
+
+    <form method="get" action="/admin/commodity/goods-list" class="d-flex gap-2 mb-4">
+        <input type="text" class="form-control flex-1" name="keyword" placeholder="搜索商品" th:value="${keyword}">
+        <button type="submit" class="btn btn-primary">搜索</button>
+        <button type="button" class="btn btn-outline-secondary" onclick="location.href='/admin/commodity/goods-list'">重置</button>
+    </form>
+
+    <table class="table table-hover">
+        <tr>
+            <th>ID</th>
+            <th>图片</th>
+            <th>名称</th>
+            <th>编码</th>
+            <th>价格</th>
+            <th>库存</th>
+            <th>兑换积分</th>
+            <th>状态</th>
+            <th>操作</th>
+        </tr>
+        <tr th:each="commodity : ${commodityList}">
+            <td th:text="${commodity.id}"></td>
+            <td>
+                <img th:if="${commodity.cover}" th:src="${commodity.cover}" class="commodity-img">
+                <span th:unless="${commodity.cover}" class="text-muted">无图</span>
+            </td>
+            <td th:text="${commodity.name}"></td>
+            <td th:text="${commodity.code}"></td>
+            <td th:text="${commodity.price}"></td>
+            <td th:classappend="${commodity.stock < 50 ? 'stock-warning' : ''}" th:text="${commodity.stock}"></td>
+            <td th:text="${commodity.points}"></td>
+            <td>
+                <span th:class="${commodity.status==1 ? 'status-on' : 'status-off'}"
+                      th:text="${commodity.status==1 ? '上架' : '下架'}"></span>
+            </td>
+            <td>
+                <a th:href="@{/admin/commodity/edit/{id}(id=${commodity.id})}" class="btn btn-sm btn-success">修改</a>
+                <form method="post" th:action="@{/admin/commodity/delete/{id}(id=${commodity.id})}" style="display:inline;">
+                    <button class="btn btn-sm btn-danger" onclick="return confirm('确定删除？')">删除</button>
+                </form>
+            </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(commodityList)}">
+            <td colspan="9" class="text-center text-muted">暂无商品</td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>

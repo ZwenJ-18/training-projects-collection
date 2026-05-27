@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.supermarket.points.mapper.CommodityMapper">
+    <!-- 结果映射：数据库字段 → 实体类属性 -->
+    <resultMap id="CommodityMap" type="com.supermarket.points.model.entity.Commodity">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="cover" property="cover"/>
+        <result column="description" property="description"/>
+        <result column="price" property="price"/>
+        <result column="stock" property="stock"/>
+        <result column="points" property="points"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <!-- 1. 查全部商品 -->
+    <select id="selectList" resultMap="CommodityMap">
+        SELECT * FROM commodity
+    </select>
+
+    <!-- 2. 按关键词模糊查询（适配Controller，补充通配符） -->
+    <select id="selectByKeyword" parameterType="string" resultMap="CommodityMap">
+        SELECT * FROM commodity
+        WHERE name LIKE CONCAT('%', #{keyword}, '%') OR code LIKE CONCAT('%', #{keyword}, '%')
+    </select>
+
+    <!-- 3. 按ID查商品 -->
+    <select id="selectById" parameterType="int" resultMap="CommodityMap">
+        SELECT * FROM commodity WHERE id = #{id}
+    </select>
+
+    <!-- 4. 新增商品 -->
+    <insert id="insert" parameterType="com.supermarket.points.model.entity.Commodity">
+        INSERT INTO commodity (name, code, cover, description, price, stock, points, status, create_time)
+        VALUES (#{name}, #{code}, #{cover}, #{description}, #{price}, #{stock}, #{points}, #{status}, #{createTime})
+    </insert>
+
+    <!-- 5. 按ID更新商品 -->
+    <update id="updateById" parameterType="com.supermarket.points.model.entity.Commodity">
+        UPDATE commodity
+        SET name = #{name}, code = #{code}, cover = #{cover}, description = #{description},
+            price = #{price}, stock = #{stock}, points = #{points}, status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 6. 按ID删除商品 -->
+    <delete id="deleteById" parameterType="int">
+        DELETE FROM commodity WHERE id = #{id}
+    </delete>
+
+    <!-- 7. 分页查询（备用） -->
+    <select id="selectAll" resultMap="CommodityMap">
+        SELECT * FROM commodity LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 8. 查询商品总数（备用） -->
+    <select id="selectTotal" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM commodity
+    </select>
+
+    <!-- 9. 按编码查商品 -->
+    <select id="selectByCode" parameterType="string" resultMap="CommodityMap">
+        SELECT * FROM commodity WHERE code = #{code}
+    </select>
+
+    <!-- 10. 扣减库存（仅保留XML定义，Java接口中删除@Update注解） -->
+    <update id="updateStock">
+        UPDATE commodity
+        SET stock = stock - #{num}
+        WHERE id = #{id} AND stock >= #{num}
+    </update>
+
+    <!-- 按状态查询商品 -->
+    <select id="selectByStatus" parameterType="int" resultMap="CommodityMap">
+        SELECT * FROM commodity WHERE status = #{status}
+    </select>
+
+    <!-- 11. 新增：查询可兑换商品（状态上架、库存>0） -->
+    <select id="selectExchangeableCommodities" resultMap="CommodityMap">
+        SELECT * FROM commodity
+        WHERE status = 1 AND stock > 0
+    </select>
+</mapper>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员控制台 - 超市积分管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #4361EE 0%, #3A0CA3 100%);
+            padding: 12px 0;
+            box-shadow: 0 4px 12px rgba(67,97,238,0.15);
+        }
+        .navbar-brand {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .container {
+            max-width: 1300px;
+        }
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #4361EE 0%, #3A0CA3 100%);
+            color: #fff;
+            font-weight: 600;
+            font-size: 16px;
+            border-bottom: none;
+            padding: 18px 20px;
+        }
+        .card-body {
+            padding: 30px 20px;
+        }
+        .card-text {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .btn {
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-weight: 500;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4361EE 0%, #3A0CA3 100%);
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/admin/dashboard">超市积分管理系统</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="/admin/dashboard">控制台</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        用户管理
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/admin/user/list_admin">用户列表</a></li>
+                        <li><a class="dropdown-item" href="/admin/user/add">新增用户</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/admin/points/consume">消费加积分</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        商品管理
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/admin/commodity/goods-list">商品列表</a></li>
+                        <li><a class="dropdown-item" href="/admin/commodity/new">新增商品</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">退出登录</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <h3 class="page-title">管理员控制台</h3>
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card text-center">
+                <div class="card-header">用户管理</div>
+                <div class="card-body">
+                    <p class="card-text">管理系统所有用户信息、积分、状态</p>
+                    <a href="/admin/user/list_admin" class="btn btn-primary w-100">进入管理中心</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card text-center">
+                <div class="card-header">商品管理</div>
+                <div class="card-body">
+                    <p class="card-text">管理商品信息、库存、积分兑换配置</p>
+                    <a href="/admin/commodity/goods-list" class="btn btn-primary w-100">进入商品中心</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

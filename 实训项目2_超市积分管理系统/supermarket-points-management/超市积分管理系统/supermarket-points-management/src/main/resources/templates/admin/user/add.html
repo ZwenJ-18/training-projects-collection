@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>新增用户 - 超市积分管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f5f7fa;
+            font-family: "Microsoft YaHei", sans-serif;
+            padding: 40px 0;
+        }
+        .container {
+            max-width: 700px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            padding: 40px;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: #222;
+        }
+        .form-item {
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: block;
+            color: #333;
+        }
+        .form-control {
+            border-radius: 10px;
+            padding: 10px 14px;
+            border: 1px solid #e0e6ed;
+        }
+        .btn {
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 500;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4361EE, #3A0CA3);
+            border: none;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            border: none;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>新增用户</h1>
+    <div class="error" th:text="${errorMsg}"></div>
+
+    <form th:action="@{/admin/user/add}" method="post">
+        <div class="form-item">
+            <label>用户名</label>
+            <input type="text" name="username" class="form-control" required>
+        </div>
+        <div class="form-item">
+            <label>密码</label>
+            <input type="password" name="password" class="form-control" required>
+        </div>
+        <div class="form-item">
+            <label>手机号</label>
+            <input type="tel" name="phone" class="form-control" required>
+        </div>
+        <div class="form-item">
+            <label>真实姓名</label>
+            <input type="text" name="realName" class="form-control" required>
+        </div>
+        <div class="form-item">
+            <label>昵称</label>
+            <input type="text" name="nickname" class="form-control" placeholder="可不填，默认同真实姓名">
+        </div>
+        <div class="form-item">
+            <label>初始积分</label>
+            <input type="number" name="points" value="0" min="0" class="form-control" required>
+        </div>
+        <div class="form-item">
+            <label>状态</label>
+            <select name="status" class="form-control" required>
+                <option value="1">正常</option>
+                <option value="0">禁用</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">提交保存</button>
+        <a th:href="@{/admin/user/list_admin}" class="btn btn-secondary ms-2">返回列表</a>
+    </form>
+</div>
+</body>
+</html>

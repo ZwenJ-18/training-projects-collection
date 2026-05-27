@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>编辑用户 - 超市积分管理系统</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f5f7fa;
+      font-family: "Microsoft YaHei", sans-serif;
+      padding: 40px 0;
+    }
+    .container {
+      max-width: 700px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+      padding: 40px;
+    }
+    h1, h3 {
+      font-weight: 600;
+      color: #222;
+      margin-bottom: 20px;
+    }
+    .form-item { margin-bottom: 20px; }
+    label {
+      font-weight: 500;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .form-control {
+      border-radius: 10px;
+      padding: 10px 14px;
+      border: 1px solid #e0e6ed;
+    }
+    .btn {
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-weight: 500;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #4361EE, #3A0CA3);
+      border: none;
+    }
+    .btn-secondary { background: #6c757d; border: none; }
+    .btn-danger { background: #dc3545; border: none; }
+    .btn-warning { background: #ffc107; border: none; color: #212529; }
+    .msg { color: #28a745; font-weight: 500; }
+    .error-msg { color: #dc3545; font-weight: 500; }
+
+    /* 👇 通用弹窗样式 */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+    }
+    .modal-content {
+      background-color: #ffffff;
+      margin: 15% auto;
+      padding: 30px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      animation: modal-fadein 0.3s ease-out;
+    }
+    @keyframes modal-fadein {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .modal-header {
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 20px;
+    }
+    .modal-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+    }
+    .modal-body {
+      margin-bottom: 20px;
+      color: #555;
+      line-height: 1.6;
+    }
+    .modal-footer {
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>编辑用户</h1>
+  <div th:if="${msg}" class="msg" th:text="${msg}"></div>
+  <div th:if="${errorMsg}" class="error-msg" th:text="${errorMsg}"></div>
+
+  <!-- 保存修改表单 -->
+  <form id="editUserForm" th:action="@{/admin/user/edit}" method="post">
+    <input type="hidden" name="id" th:value="${user.id}">
+    <div class="form-item">
+      <label>用户名</label>
+      <input type="text" class="form-control" th:value="${user.username}" readonly style="background:#f8f9fa;">
+    </div>
+    <div class="form-item">
+      <label>手机号</label>
+      <input type="tel" name="phone" class="form-control" th:value="${user.phone}" required>
+    </div>
+    <div class="form-item">
+      <label>真实姓名</label>
+      <input type="text" name="realName" class="form-control" th:value="${user.realName}" required>
+    </div>
+    <div class="form-item">
+      <label>昵称</label>
+      <input type="text" name="nickname" class="form-control" th:value="${user.nickname}" required>
+    </div>
+    <div class="form-item">
+      <label>当前积分</label>
+      <input type="number" name="points" class="form-control" th:value="${user.points}" min="0" required>
+    </div>
+    <div class="form-item">
+      <label>状态</label>
+      <select name="status" class="form-control" required>
+        <option value="1" th:selected="${user.status == 1}">正常</option>
+        <option value="0" th:selected="${user.status == 0}">禁用</option>
+      </select>
+    </div>
+    <button type="button" class="btn btn-primary" onclick="checkAndShowEditModal()">保存修改</button>
+    <a th:href="@{/admin/user/list_admin}" class="btn btn-secondary ms-2">返回列表</a>
+  </form>
+
+  <!-- 积分调整表单 -->
+  <h3 class="mt-4">积分快速调整</h3>
+  <form id="adjustPointsForm" th:action="@{/admin/user/adjustPoints}" method="post">
+    <input type="hidden" name="id" th:value="${user.id}">
+    <div class="form-item">
+      <label>调整积分（正数增加，负数扣除）</label>
+      <input type="number" id="adjustPointsInput" name="points" class="form-control" placeholder="例如：100 或 -50" required>
+    </div>
+    <button type="button" class="btn btn-primary" onclick="showAdjustModal()">确认调整</button>
+  </form>
+
+  <!-- 重置密码表单 -->
+  <h3 class="mt-4">重置用户密码</h3>
+  <form id="resetPasswordForm" th:action="@{/admin/user/resetPassword}" method="post">
+    <input type="hidden" name="id" th:value="${user.id}">
+    <button type="button" class="btn btn-danger" onclick="showResetModal()">重置为初始密码：123456</button>
+  </form>
+</div>
+
+<!-- 👇 通用提示弹窗（用来替换所有 alert） -->
+<div id="alertModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title" id="alertModalTitle">提示</h2>
+    </div>
+    <div class="modal-body" id="alertModalBody"></div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="hideModal('alertModal')">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 👇 确认保存修改弹窗 -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">确认保存修改</h2>
+    </div>
+    <div class="modal-body">
+      <p>您确定要保存对该用户的所有修改吗？</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" onclick="hideModal('editModal')">取消</button>
+      <button type="button" class="btn btn-primary" onclick="document.getElementById('editUserForm').submit();">确认保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 👇 确认积分调整弹窗 -->
+<div id="adjustModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">确认积分调整</h2>
+    </div>
+    <div class="modal-body">
+      <p>您确定要调整该用户的积分吗？</p>
+      <p style="font-size: 14px; color: #888; margin-top: 10px;">调整后积分将无法撤销，请谨慎操作。</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" onclick="hideModal('adjustModal')">取消</button>
+      <button type="button" class="btn btn-primary" onclick="document.getElementById('adjustPointsForm').submit();">确认调整</button>
+    </div>
+  </div>
+</div>
+
+<!-- 👇 确认重置密码弹窗 -->
+<div id="resetModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">确认重置密码</h2>
+    </div>
+    <div class="modal-body">
+      <p>您确定要将该用户的密码重置为 <strong style="color: #dc3545;">123456</strong> 吗？</p>
+      <p style="font-size: 14px; color: #888; margin-top: 10px;">重置后，请通知用户使用新密码登录。</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" onclick="hideModal('resetModal')">取消</button>
+      <button type="button" class="btn btn-danger" onclick="document.getElementById('resetPasswordForm').submit();">确认重置</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 👇 替换原生 alert 的自定义提示弹窗
+  function showAlert(message, title = "提示") {
+    document.getElementById('alertModalTitle').textContent = title;
+    document.getElementById('alertModalBody').textContent = message;
+    showModal('alertModal');
+  }
+
+  // 检查手机号格式
+  function checkForm() {
+    const phone = document.querySelector('input[name="phone"]').value;
+    if (!/^1[3-9]\d{9}$/.test(phone)) {
+      showAlert("手机号格式不正确", "输入错误");
+      return false;
+    }
+    return true;
+  }
+
+  // 检查并显示保存修改的弹窗
+  function checkAndShowEditModal() {
+    if (checkForm()) {
+      showModal('editModal');
+    }
+  }
+
+  // 快捷方式：显示积分调整弹窗（带非空检查）
+  function showAdjustModal() {
+    const pointsInput = document.getElementById('adjustPointsInput');
+    if (!pointsInput.value.trim()) {
+      showAlert("请输入要调整的积分值", "输入错误");
+      pointsInput.focus();
+      return;
+    }
+    showModal('adjustModal');
+  }
+
+  function showResetModal() {
+    showModal('resetModal');
+  }
+
+  // 显示指定弹窗
+  function showModal(modalId) {
+    document.getElementById(modalId).style.display = 'block';
+  }
+
+  // 隐藏指定弹窗
+  function hideModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+  }
+
+  // 点击弹窗外部区域关闭弹窗
+  window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+      event.target.style.display = 'none';
+    }
+  }
+</script>
+</body>
+</html>

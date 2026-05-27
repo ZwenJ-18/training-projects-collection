@@ -1,0 +1,8 @@
+超市积分管理系统
+SDK：17
+
+MYSQL数据源
+
+用户：root
+密码：123456
+数据库:supermarket_points_db

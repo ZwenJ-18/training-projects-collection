@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.supermarket.points.mapper.SysUserMapper">
+
+    <select id="selectById" resultType="com.supermarket.points.model.entity.SysUser">
+        SELECT id, username, password, phone, real_name, points, create_time, update_time, status, role, nickname
+        FROM sys_user
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByUsername" resultType="com.supermarket.points.model.entity.SysUser">
+        SELECT id, username, password, phone, real_name, points, create_time, update_time, status, role, nickname
+        FROM sys_user
+        WHERE username = #{username} AND status = 1
+    </select>
+
+    <update id="updateUser" parameterType="com.supermarket.points.model.entity.SysUser">
+        UPDATE sys_user
+        SET
+            phone = #{phone},
+            real_name = #{realName},
+            points = #{points},
+            status = #{status},
+            nickname = #{nickname},
+            password = #{password},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+
+    <insert id="insert" parameterType="com.supermarket.points.model.entity.SysUser">
+        INSERT INTO sys_user (username, password, phone, real_name, points, create_time, update_time, status, role, nickname)
+        VALUES (#{username}, #{password}, #{phone}, #{realName}, #{points}, #{createTime}, #{updateTime}, #{status}, #{role}, #{nickname})
+    </insert>
+
+    <delete id="deleteById">
+        DELETE FROM sys_user WHERE id = #{id}
+    </delete>
+
+    <select id="selectAll" resultType="com.supermarket.points.model.entity.SysUser">
+        SELECT id, username, phone, real_name, points, create_time, update_time, status, role, nickname
+        FROM sys_user
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectTotal" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM sys_user
+    </select>
+
+    <update id="updatePoints">
+        UPDATE sys_user SET points = #{points}, update_time = NOW() WHERE id = #{userId}
+    </update>
+
+</mapper>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户中心 - 超市积分管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #4361EE 0%, #3A0CA3 100%);
+            padding: 12px 0;
+            box-shadow: 0 4px 12px rgba(67,97,238,0.12);
+        }
+        .navbar-brand {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .container {
+            max-width: 1300px;
+        }
+        .page-title {
+            font-size: 26px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 25px;
+        }
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.1);
+        }
+        .card-body {
+            padding: 35px 20px;
+        }
+        .card-title {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 12px;
+            color: #222;
+        }
+        .card-text {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .btn {
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 500;
+            background: linear-gradient(135deg, #4361EE 0%, #3A0CA3 100%);
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/user/home">超市积分管理系统</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="/user/home">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/user/commodity/list">商品列表</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/user/order/list">我的订单</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/user/points/record">积分记录</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item me-3">
+                    <span class="nav-link text-white">欢迎您，[[${user.username}]]！当前积分：[[${user.points}]]</span>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">退出登录</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <h3 class="page-title">用户中心</h3>
+    <div class="row g-4 mt-2">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">商品商城</h5>
+                    <p class="card-text">浏览商品、使用积分兑换</p>
+                    <a href="/user/commodity/list" class="btn w-100">进入商城</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">我的订单</h5>
+                    <p class="card-text">查看全部订单与支付状态</p>
+                    <a href="/user/order/list" class="btn w-100">查看订单</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">积分记录</h5>
+                    <p class="card-text">查看积分收入与消耗明细</p>
+                    <a href="/user/points/record" class="btn w-100">查看记录</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

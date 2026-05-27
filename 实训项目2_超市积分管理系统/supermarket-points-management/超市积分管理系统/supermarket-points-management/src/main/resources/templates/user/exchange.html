@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>积分兑换页面</title>
+    <style>
+        body {
+            padding: 20px;
+            font-family: "微软雅黑";
+            background-color: #f8f9fa;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 15px;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .back-btn:hover {
+            background: #5a6268;
+        }
+        .exchange-section {
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .rule-tip {
+            color: #6c757d;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        td, th {
+            border: 1px solid #dee2e6;
+            padding: 12px 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #e9ecef;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #218838;
+        }
+        .commodity-img {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .stock-low {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .stock-zero {
+            color: #6c757d;
+            font-weight: bold;
+            text-decoration: line-through;
+        }
+        .error {
+            color: #dc3545;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        .success {
+            color: #28a745;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        .disabled-btn {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .disabled-btn:hover {
+            background: #6c757d;
+        }
+        .refresh-tip {
+            color: #007bff;
+            font-size: 14px;
+            margin-top: 15px;
+            cursor: pointer;
+        }
+        .refresh-tip:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<!-- 返回按钮 -->
+<a href="/user/home" class="back-btn">返回用户首页</a>
+
+<!-- 强化提示信息：明确显示库存变化 -->
+<div th:if="${not #strings.isEmpty(msg)}" class="success">
+    🌟 <span th:text="${msg}"></span>
+    <th:block th:if="${not #strings.isEmpty(stockChangeMsg)}">
+        <br>📦 <span th:text="${stockChangeMsg}"></span>
+    </th:block>
+</div>
+<div th:if="${not #strings.isEmpty(error)}" class="error">
+    ❌ <span th:text="${error}"></span>
+</div>
+
+<!-- 积分兑换核心区域 -->
+<div class="exchange-section">
+    <h2>积分兑换中心</h2>
+    <div class="rule-tip">
+        📌 兑换规则：1. 兑换后积分将扣除，库存同步减少1件；2. 库存≤0时无法兑换；3. 积分不足时无法兑换；4. 兑换后请刷新页面查看最新库存
+    </div>
+
+    <!-- 显示当前用户积分 -->
+    <p style="font-size: 16px; font-weight: bold;">
+        我的可用积分：<span style="color: #e74c3c;" th:text="${userPoints}">0</span> 分
+    </p>
+
+    <!-- 手动刷新库存按钮 -->
+    <p class="refresh-tip" onclick="window.location.reload()">
+        🔄 点击刷新最新库存（兑换后建议刷新）
+    </p>
+
+    <!-- 兑换商品列表（优化库存显示逻辑） -->
+    <table>
+        <tr>
+            <th>商品图片</th>
+            <th>商品名称</th>
+            <th>当前库存</th>
+            <th>兑换所需积分</th>
+            <th>操作</th>
+        </tr>
+        <tr th:each="commodity : ${commodityList}">
+            <!-- 商品图片 -->
+            <td>
+                <img
+                        th:src="${commodity.cover != null ? commodity.cover : '/images/default.png'}"
+                        class="commodity-img"
+                        alt="商品图片"
+                        th:alt="${commodity.name} + '图片'"
+                >
+            </td>
+            <!-- 商品名称 -->
+            <td th:text="${commodity.name}">商品名称</td>
+            <!-- 库存显示：0库存单独样式，<10标红 -->
+            <td th:classappend="${commodity.stock == 0 ? 'stock-zero' : (commodity.stock < 10 ? 'stock-low' : '')}">
+                <span th:text="${commodity.stock}">0</span>
+                <span th:if="${commodity.stock > 0}"> 件</span>
+                <span th:if="${commodity.stock == 0}"> 件（已售罄）</span>
+            </td>
+            <!-- 兑换积分 -->
+            <td th:text="${commodity.points}">0</td>
+            <!-- 兑换操作（强化禁用逻辑） -->
+            <td>
+                <form th:action="@{'/user/exchange'}" method="post" style="display: inline;">
+                    <input type="hidden" name="commodityId" th:value="${commodity.id}">
+                    <button
+                            type="submit"
+                            th:classappend="${commodity.stock <= 0 or userPoints < commodity.points ? 'disabled-btn' : ''}"
+                            th:disabled="${commodity.stock <= 0 or userPoints < commodity.points}"
+                            title="库存不足" th:title="${commodity.stock <= 0 ? '库存不足，无法兑换' : (userPoints < commodity.points ? '积分不足，无法兑换' : '点击兑换')}"
+                    >
+                        <span th:if="${commodity.stock <= 0}">已售罄</span>
+                        <span th:elseif="${userPoints < commodity.points}">积分不足</span>
+                        <span th:else>立即兑换（扣1件库存）</span>
+                    </button>
+                </form>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<!-- 脚本：自动提示兑换后刷新 -->
+<script>
+    // 如果有成功提示，3秒后提示用户刷新
+    window.onload = function() {
+        const successMsg = document.querySelector('.success');
+        if (successMsg) {
+            setTimeout(() => {
+                alert('兑换成功！页面将自动刷新以显示最新库存～');
+                window.location.reload();
+            }, 3000);
+        }
+    }
+</script>
+</body>
+</html>

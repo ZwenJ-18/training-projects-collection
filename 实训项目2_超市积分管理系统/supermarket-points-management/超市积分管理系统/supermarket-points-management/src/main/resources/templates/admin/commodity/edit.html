@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>修改商品 - 超市积分管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f5f7fa;
+            font-family: "Microsoft YaHei", sans-serif;
+            padding: 40px 0;
+        }
+        .form-box {
+            max-width: 600px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            padding: 40px;
+            margin: 0 auto;
+        }
+        h2 {
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: #222;
+        }
+        .form-item {
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: 500;
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .form-control {
+            border-radius: 10px;
+            padding: 10px 14px;
+            border: 1px solid #e0e6ed;
+        }
+        .img-preview img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .tip-text {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .error-msg {
+            color: #dc3545;
+            text-align: center;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+        .btn {
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 500;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4361EE, #3A0CA3);
+            border: none;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            border: none;
+        }
+
+        /* 👇 全局统一漂亮弹窗样式（和用户编辑页完全一致） */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background-color: #ffffff;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            animation: modal-fadein 0.3s ease-out;
+        }
+        @keyframes modal-fadein {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-header {
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+        .modal-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        .modal-body {
+            margin-bottom: 20px;
+            color: #555;
+            line-height: 1.6;
+        }
+        .modal-footer {
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="form-box">
+    <h2>修改商品</h2>
+    <div th:if="${errorMsg}" class="error-msg">[[${errorMsg}]]</div>
+
+    <form id="updateCommodityForm" th:action="@{/admin/commodity/update}" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="id" th:value="${commodity.id}">
+
+        <div class="form-item">
+            <label>商品名称</label>
+            <input type="text" name="name" class="form-control" th:value="${commodity.name}" required>
+        </div>
+        <div class="form-item">
+            <label>商品价格</label>
+            <input type="number" step="0.01" name="price" class="form-control" th:value="${commodity.price}" required>
+        </div>
+        <div class="form-item">
+            <label>库存数量</label>
+            <input type="number" name="stock" class="form-control" th:value="${commodity.stock}" required>
+        </div>
+        <div class="form-item">
+            <label>兑换积分</label>
+            <input type="number" name="points" min="0" class="form-control" th:value="${commodity.points}" required>
+        </div>
+        <div class="form-item">
+            <label>商品状态</label>
+            <select name="status" class="form-control">
+                <option value="1" th:selected="${commodity.status == 1}">上架</option>
+                <option value="0" th:selected="${commodity.status == 0}">下架</option>
+            </select>
+        </div>
+        <div class="form-item">
+            <label>商品描述</label>
+            <input type="text" name="description" class="form-control" th:value="${commodity.description}">
+        </div>
+
+        <div class="form-item">
+            <label>当前图片</label>
+            <div class="img-preview">
+                <img th:if="${commodity.cover != null and !commodity.cover.isEmpty()}" th:src="${commodity.cover}">
+                <span th:unless="${commodity.cover}" class="text-muted">暂无商品图片</span>
+            </div>
+        </div>
+        <div class="form-item">
+            <label>更换图片</label>
+            <input type="file" name="coverFile" accept=".jpg,.png,.webp" class="form-control">
+            <div class="tip-text">支持JPG、PNG、WEBP，不选则保留原图片</div>
+        </div>
+
+        <button type="button" class="btn btn-primary w-100" onclick="checkAndShowSaveModal()">保存修改</button>
+        <a href="/admin/commodity/goods-list" class="btn btn-secondary w-100 mt-2">返回列表</a>
+    </form>
+</div>
+
+<!-- 👇 统一提示弹窗（所有错误/提示用这个） -->
+<div id="alertModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title" id="alertModalTitle">系统提示</h2>
+        </div>
+        <div class="modal-body" id="alertModalBody"></div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" onclick="hideModal('alertModal')">确定</button>
+        </div>
+    </div>
+</div>
+
+<!-- 👇 统一确认保存弹窗 -->
+<div id="saveModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">确认保存修改</h2>
+        </div>
+        <div class="modal-body">
+            <p>您确定要保存当前商品的所有修改吗？</p>
+            <p style="font-size:14px;color:#888">保存后将覆盖原有数据</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="hideModal('saveModal')">取消</button>
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('updateCommodityForm').submit()">确认保存</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 统一提示弹窗
+    function showAlert(message, title = "提示") {
+        document.getElementById("alertModalTitle").innerText = title;
+        document.getElementById("alertModalBody").innerText = message;
+        showModal("alertModal");
+    }
+
+    // 表单校验
+    function checkForm() {
+        const name = document.querySelector("input[name='name']").value.trim();
+        const price = document.querySelector("input[name='price']").value.trim();
+        const stock = document.querySelector("input[name='stock']").value.trim();
+        const points = document.querySelector("input[name='points']").value.trim();
+
+        if (!name) {
+            showAlert("商品名称不能为空", "输入错误");
+            return false;
+        }
+        if (!price || isNaN(price) || Number(price) < 0) {
+            showAlert("请输入合法的商品价格", "输入错误");
+            return false;
+        }
+        if (!stock || isNaN(stock) || Number(stock) < 0) {
+            showAlert("请输入合法的库存数量", "输入错误");
+            return false;
+        }
+        if (!points || isNaN(points) || Number(points) < 0) {
+            showAlert("兑换积分不能为负数", "输入错误");
+            return false;
+        }
+        return true;
+    }
+
+    // 检查后弹出确认框
+    function checkAndShowSaveModal() {
+        if (checkForm()) {
+            showModal("saveModal");
+        }
+    }
+
+    // 弹窗控制
+    function showModal(id) {
+        document.getElementById(id).style.display = "block";
+    }
+    function hideModal(id) {
+        document.getElementById(id).style.display = "none";
+    }
+
+    // 点击外部关闭
+    window.onclick = function(e) {
+        if (e.target.classList.contains("modal")) {
+            e.target.style.display = "none";
+        }
+    }
+</script>
+</body>
+</html>
