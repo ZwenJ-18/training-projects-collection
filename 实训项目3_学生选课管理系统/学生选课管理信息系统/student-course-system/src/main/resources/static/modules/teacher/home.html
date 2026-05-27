@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>教师首页 - 选课管理系统</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft YaHei", sans-serif; }
+        body { background-color: #f5f7fa; }
+        .header {
+            background-color: #165DFF;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .container {
+            width: 90%;
+            margin: 30px auto;
+            display: flex;
+            gap: 20px;
+        }
+        .course-card {
+            flex: 1;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .card-title {
+            color: #165DFF;
+            font-size: 18px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .course-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .course-item {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .course-item:hover {
+            background-color: #f5f7fa;
+        }
+        .course-info { flex: 1; }
+        .course-opt button {
+            padding: 4px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        .btn-student { background-color: #165DFF; color: white; }
+        .btn-score { background-color: #52C41A; color: white; }
+        .logout-btn {
+            background-color: #FF4D4F;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .info-btn, .pwd-btn {
+            background-color: #165DFF;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .empty-tip {
+            color: #999;
+            text-align: center;
+            padding: 20px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        .modal-content {
+            background: white;
+            margin: 100px auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+        }
+        .modal-title {
+            font-size: 18px;
+            color: #165DFF;
+            margin-bottom: 20px;
+        }
+        .form-item {
+            margin: 10px 0;
+        }
+        .form-item label {
+            display: inline-block;
+            width: 80px;
+        }
+        .form-item input {
+            padding: 4px;
+            width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .modal-btn-group {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .modal-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        .confirm-btn { background-color: #165DFF; color: white; }
+        .cancel-btn { background-color: #999; color: white; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h2>大学学生选课管理系统 - 教师端</h2>
+    <div>
+        <span id="teacherName">加载中...</span>
+        <button class="info-btn" onclick="showInfoModal()">个人信息</button>
+        <button class="pwd-btn" onclick="showPwdModal()">修改密码</button>
+        <button class="logout-btn" onclick="logout()">退出登录</button>
+    </div>
+</div>
+<div class="container">
+    <div class="course-card">
+        <div class="card-title">我的授课课程</div>
+        <div class="course-list" id="courseList">
+            <div class="empty-tip">加载中...</div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="infoModal">
+    <div class="modal-content">
+        <h3 class="modal-title">个人信息修改</h3>
+        <div class="form-item">
+            <label for="teaNo">教工号：</label>
+            <input type="text" id="teaNo" disabled>
+        </div>
+        <div class="form-item">
+            <label for="teaName">姓名：</label>
+            <input type="text" id="teaName">
+        </div>
+        <div class="form-item">
+            <label for="teaSex">性别：</label>
+            <select id="teaSex" style="padding:4px; width:200px; border:1px solid #ddd; border-radius:4px;">
+                <option value="">请选择</option>
+                <option value="男">男</option>
+                <option value="女">女</option>
+            </select>
+        </div>
+        <div class="form-item">
+            <label for="teaAge">年龄：</label>
+            <input type="number" id="teaAge" min="24" max="60">
+        </div>
+        <div class="modal-btn-group">
+            <button class="modal-btn confirm-btn" onclick="saveInfo()">保存</button>
+            <button class="modal-btn cancel-btn" onclick="hideInfoModal()">取消</button>
+        </div>
+    </div>
+</div>
+<div class="modal" id="pwdModal">
+    <div class="modal-content">
+        <h3 class="modal-title">修改密码</h3>
+        <div class="form-item">
+            <label for="oldPwd">原密码：</label>
+            <input type="password" id="oldPwd">
+        </div>
+        <div class="form-item">
+            <label for="newPwd">新密码：</label>
+            <input type="password" id="newPwd">
+        </div>
+        <div class="form-item">
+            <label for="confirmPwd">确认密码：</label>
+            <input type="password" id="confirmPwd">
+        </div>
+        <div class="modal-btn-group">
+            <button class="modal-btn confirm-btn" onclick="updatePwd()">确认</button>
+            <button class="modal-btn cancel-btn" onclick="hidePwdModal()">取消</button>
+        </div>
+    </div>
+</div>
+<script>
+    let currentTeacher = null;
+
+    // 页面初始化：先校验通用登录状态，再获取教师信息
+    window.onload = async function() {
+        try {
+            // 第一步：校验通用登录状态
+            const userRes = await fetch('http://localhost:8080/getLoginUser', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {'Content-Type': 'application/json'}
+            });
+            const userData = await userRes.json();
+
+            if (userData.code !== 200) {
+                alert(`登录验证失败：${userData.msg || '未登录'}`);
+                window.location.href = "/login.html";
+                return;
+            }
+
+            if (userData.data.role !== 'teacher') {
+                alert(`当前登录角色是${userData.data.role}，请以教师身份重新登录`);
+                window.location.href = "/login.html";
+                return;
+            }
+
+            // 第二步：获取教师专属信息
+            const teaRes = await fetch('http://localhost:8080/teacher/getLoginTeacher', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {'Content-Type': 'application/json'}
+            });
+            const teaData = await teaRes.json();
+
+            if (teaData.code !== 200) {
+                alert(`教师信息获取失败：${teaData.msg || '未知错误'}`);
+                window.location.href = "/login.html";
+                return;
+            }
+
+            currentTeacher = teaData.data;
+            document.getElementById('teacherName').innerText = `${currentTeacher.tname}（${currentTeacher.tno}）`;
+            loadCourseList();
+
+        } catch (err) {
+            console.error("初始化失败：", err);
+            alert("系统异常，登录状态验证失败，请重新登录");
+            window.location.href = "/login.html";
+        }
+    };
+
+    // 加载授课课程列表（优化提示文案）
+    function loadCourseList() {
+        fetch(`http://localhost:8080/teacher/course/list?tno=${currentTeacher.tno}`, {
+            method: 'GET',
+            credentials: 'include'
+        })
+            .then(res => res.json())
+            .then(res => {
+                const courseList = document.getElementById('courseList');
+                if (res.code !== 200 || !res.data) {
+                    courseList.innerHTML = '<div class="empty-tip">暂无授课课程（请联系管理员分配课程）</div>';
+                    return;
+                }
+
+                const teacher = res.data;
+                const courses = [
+                    { cno: teacher.cno1, cname: teacher.cname1 },
+                    { cno: teacher.cno2, cname: teacher.cname2 },
+                    { cno: teacher.cno3, cname: teacher.cname3 }
+                ].filter(course => course.cno && course.cno.trim() !== '');
+
+                if (courses.length === 0) {
+                    courseList.innerHTML = '<div class="empty-tip">暂无授课课程（请联系管理员分配课程）</div>';
+                    return;
+                }
+
+                // 渲染课程列表
+                courseList.innerHTML = '';
+                courses.forEach(course => {
+                    const item = document.createElement('div');
+                    item.className = "course-item";
+                    item.innerHTML = `
+                    <div class="course-info">
+                        <div><strong>${course.cname || '未命名课程'}</strong>（${course.cno}）</div>
+                        <div>授课教师：${teacher.tname}</div>
+                    </div>
+                    <div class="course-opt">
+                        <button class="btn-student" onclick="viewStudents('${course.cno}', '${course.cname || '未命名课程'}')">查看学生</button>
+                        <button class="btn-score" onclick="enterScore('${course.cno}', '${course.cname || '未命名课程'}')">录入成绩</button>
+                    </div>
+                `;
+                    courseList.appendChild(item);
+                });
+            }).catch(err => {
+            console.error("加载课程失败：", err);
+            document.getElementById('courseList').innerHTML = '<div class="empty-tip">加载课程失败，请刷新页面重试</div>';
+        });
+    }
+
+    // 查看选课学生
+    function viewStudents(cno, cname) {
+        window.location.href = `/modules/teacher/studentList.html?cno=${cno}&cname=${encodeURIComponent(cname)}`;
+    }
+
+    // 录入成绩
+    function enterScore(cno, cname) {
+        window.location.href = `/modules/teacher/scoreInput.html?cno=${cno}&cname=${encodeURIComponent(cname)}`;
+    }
+
+    // 个人信息弹窗
+    function showInfoModal() {
+        if (!currentTeacher) return;
+        document.getElementById('teaNo').value = currentTeacher.tno;
+        document.getElementById('teaName').value = currentTeacher.tname;
+        document.getElementById('teaSex').value = currentTeacher.tsex || '';
+        document.getElementById('teaAge').value = currentTeacher.tage || '';
+        document.getElementById('infoModal').style.display = 'block';
+    }
+
+    function hideInfoModal() {
+        document.getElementById('infoModal').style.display = 'none';
+    }
+
+    function saveInfo() {
+        if (!currentTeacher) return;
+
+        const tname = document.getElementById('teaName').value.trim();
+        const tsex = document.getElementById('teaSex').value.trim();
+        const tage = parseInt(document.getElementById('teaAge').value.trim());
+
+        if (!tname) {
+            alert("姓名不能为空！");
+            return;
+        }
+        if (isNaN(tage) || tage < 24 || tage > 60) {
+            alert("年龄必须在24-60之间！");
+            return;
+        }
+
+        // 仅传递必要字段，不传递teb/tpt避免置空
+        fetch('http://localhost:8080/teacher/update', {
+            method: 'PUT',
+            credentials: 'include',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                tno: currentTeacher.tno,
+                tname: tname,
+                tsex: tsex,
+                tage: tage
+            })
+        }).then(res => res.json())
+            .then(res => {
+                alert(res.msg || (res.code === 200 ? "修改成功" : "修改失败"));
+                if (res.code === 200) {
+                    hideInfoModal();
+                    currentTeacher.tname = tname;
+                    currentTeacher.tsex = tsex;
+                    currentTeacher.tage = tage;
+                    document.getElementById('teacherName').innerText = `${tname}（${currentTeacher.tno}）`;
+                }
+            }).catch(err => {
+            alert("修改信息失败：" + err.message);
+        });
+    }
+
+    // 密码修改（核心修复：请求路径+undefined提示）
+    function showPwdModal() {
+        document.getElementById('pwdModal').style.display = 'block';
+    }
+
+    function hidePwdModal() {
+        document.getElementById('pwdModal').style.display = 'none';
+    }
+
+    function updatePwd() {
+        if (!currentTeacher) return;
+
+        const oldPwd = document.getElementById('oldPwd').value.trim();
+        const newPwd = document.getElementById('newPwd').value.trim();
+        const confirmPwd = document.getElementById('confirmPwd').value.trim();
+
+        // 基础校验
+        if (!oldPwd || !newPwd || !confirmPwd) {
+            alert("请填写所有密码字段！");
+            return;
+        }
+        if (newPwd !== confirmPwd) {
+            alert("两次新密码不一致！");
+            return;
+        }
+        if (newPwd.length < 6) {
+            alert("新密码长度不能少于6位！");
+            return;
+        }
+
+        // 加密密码并打印（用于调试）
+        const encryptOldPwd = md5(oldPwd);
+        const encryptNewPwd = md5(newPwd);
+        console.log("原密码加密后：", encryptOldPwd);
+        console.log("新密码加密后：", encryptNewPwd);
+
+        // 修复请求路径：添加/api前缀
+        fetch('http://localhost:8080/api/user/updatePassword', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                username: currentTeacher.tno,
+                oldPwd: encryptOldPwd,
+                newPwd: encryptNewPwd
+            })
+        }).then(res => res.json())
+            .then(res => {
+                // 核心修复：兜底提示文案，避免undefined
+                const tipMsg = res.msg || (res.code === 200 ? "修改密码成功，请重新登录" : "修改密码失败（原密码错误或系统异常）");
+                alert(tipMsg);
+                if (res.code === 200) {
+                    hidePwdModal();
+                    logout(); // 修改成功后退出登录
+                }
+            }).catch(err => {
+            alert("修改密码失败：" + (err.message || "网络异常，请重试"));
+        });
+    }
+
+    // 退出登录
+    function logout() {
+        fetch('http://localhost:8080/logout', {
+            method: 'POST',
+            credentials: 'include'
+        }).then(() => {
+            window.location.href = "/login.html";
+        }).catch(err => {
+            alert("退出失败，强制跳转登录页");
+            window.location.href = "/login.html";
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>录入课程成绩</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            padding: 40px 0;
+        }
+        .container-card {
+            width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .title {
+            text-align: center;
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background-color: #0d6efd;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+        th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+        }
+        .score-input {
+            width: 80px;
+            padding: 6px;
+            text-align: center;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        .btn-save {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .btn-save:hover {
+            background-color: #218838;
+        }
+        .empty-tip {
+            text-align: center;
+            padding: 30px;
+            color: #6c757d;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="container-card">
+    <a href="/modules/teacher/home.html" class="btn-back">返回我的课程</a>
+    <h2 class="title">录入课程成绩</h2>
+    <div id="courseInfo" style="margin-bottom: 20px; font-size: 16px; color: #2c3e50;"></div>
+
+    <table id="scoreTable">
+        <thead>
+        <tr>
+            <!-- 核心修复：删除多余的<符号，修复HTML标签语法错误 -->
+            <th>学号</th>
+            <th>姓名</th>
+            <th>课程编号</th>
+            <th>成绩</th>
+        </tr>
+        </thead>
+        <tbody id="scoreTbody"></tbody>
+    </table>
+    <div id="emptyTip" class="empty-tip" style="display: none;">暂无学生选择该课程，无需录入成绩</div>
+    <button id="saveScoreBtn" class="btn-save" style="display: none;">保存所有成绩</button>
+</div>
+
+<script>
+    function getUrlParam(name) {
+        const reg = new RegExp(`(^|&)${name}=([^&]*)(&|$)`);
+        const r = window.location.search.substr(1).match(reg);
+        if (r != null) return decodeURIComponent(r[2]);
+        return null;
+    }
+
+    let scoreData = [];
+
+    function loadScoreList() {
+        const cno = getUrlParam('cno');
+        const cname = getUrlParam('cname') || '未知课程';
+        if (!cno) {
+            alert('未获取到课程信息！');
+            return;
+        }
+
+        document.getElementById('courseInfo').innerText = `课程名称：${cname}（课程编号：${cno}）`;
+
+        fetch(`http://localhost:8080/score/course/${cno}`, {
+            credentials: 'include'
+        })
+            .then(res => {
+                // 新增：校验响应状态码，避免非JSON响应导致的解析失败
+                if (!res.ok) {
+                    throw new Error(`请求失败：${res.status} ${res.statusText}`);
+                }
+                return res.json();
+            })
+            .then(res => {
+                const tbody = document.getElementById('scoreTbody');
+                const emptyTip = document.getElementById('emptyTip');
+                const saveBtn = document.getElementById('saveScoreBtn');
+                tbody.innerHTML = '';
+                scoreData = [];
+
+                if (res.code === 200 && res.data && res.data.length > 0) {
+                    res.data.forEach(student => {
+                        // 新增：空值兜底，避免student为null导致的报错
+                        if (!student) return;
+                        scoreData.push({
+                            sno: student.sno || '',
+                            cno: cno,
+                            score: student.score || ''
+                        });
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${student.sno || '未知'}</td>
+                            <td>${student.sname || '未知'}</td>
+                            <td>${cno}</td>
+                            <td><input type="number" class="score-input" min="0" max="100" value="${student.score || ''}" data-sno="${student.sno || ''}"></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                    emptyTip.style.display = 'none';
+                    saveBtn.style.display = 'block';
+                } else {
+                    emptyTip.style.display = 'block';
+                    saveBtn.style.display = 'none';
+                }
+            })
+            .catch(err => {
+                alert('查询学生成绩失败：' + err.message);
+                console.error('加载成绩列表异常：', err); // 新增：控制台打印详细错误，方便调试
+            });
+    }
+
+    function saveAllScores() {
+        const cno = getUrlParam('cno');
+        if (!cno) return;
+
+        const inputs = document.querySelectorAll('.score-input');
+        const submitData = [];
+        let hasError = false; // 新增：标记是否有校验错误，避免中断循环
+
+        inputs.forEach(input => {
+            if (hasError) return;
+            const sno = input.getAttribute('data-sno');
+            const score = input.value.trim();
+
+            // 优化：更友好的空值提示
+            if (score === '') {
+                alert(`学号${sno || '未知'}的成绩不能为空，请填写0-100之间的数值！`);
+                hasError = true;
+                return;
+            }
+
+            const scoreNum = Number(score);
+            // 优化：校验非数字的情况
+            if (isNaN(scoreNum)) {
+                alert(`学号${sno}的成绩必须是数字！`);
+                hasError = true;
+                return;
+            }
+
+            if (scoreNum < 0 || scoreNum > 100) {
+                alert(`学号${sno}的成绩必须在0-100之间！`);
+                hasError = true;
+                return;
+            }
+
+            submitData.push({
+                sno: sno,
+                cno: cno,
+                score: scoreNum,
+                semester: "2024-2025-1"
+            });
+        });
+
+        if (hasError) return; // 有校验错误则终止提交
+        if (submitData.length === 0) {
+            alert('请至少填写一条成绩！');
+            return;
+        }
+
+        fetch('http://localhost:8080/score/batchSave', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(submitData)
+        })
+            .then(res => {
+                // 新增：校验响应状态码
+                if (!res.ok) {
+                    throw new Error(`保存失败：${res.status} ${res.statusText}`);
+                }
+                return res.json();
+            })
+            .then(res => {
+                if (res.code === 200) {
+                    alert('成绩录入成功！');
+                    loadScoreList(); // 重新加载列表，刷新最新数据
+                } else {
+                    alert('成绩录入失败：' + (res.msg || '未知错误'));
+                }
+            })
+            .catch(err => {
+                alert('保存成绩失败：' + err.message);
+                console.error('保存成绩异常：', err); // 新增：控制台打印详细错误
+            });
+    }
+
+    document.getElementById('saveScoreBtn').addEventListener('click', saveAllScores);
+
+    // 新增：页面加载失败的兜底处理
+    window.onload = () => {
+        try {
+            loadScoreList();
+        } catch (err) {
+            alert('页面初始化失败：' + err.message);
+            console.error('页面初始化异常：', err);
+        }
+    };
+</script>
+</body>
+</html>

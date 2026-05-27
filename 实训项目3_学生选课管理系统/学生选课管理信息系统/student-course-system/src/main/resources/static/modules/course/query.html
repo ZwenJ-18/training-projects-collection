@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>查询课程信息</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            padding: 40px 0;
+        }
+        .container-card {
+            width: 600px; /* 与教师查询页统一宽度 */
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .title {
+            text-align: center;
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background-color: #0d6efd;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #495057;
+        }
+        .btn-query {
+            width: 100%;
+            padding: 12px;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .btn-query:hover {
+            background-color: #0b5ed7;
+        }
+        /* 结果展示区美化（与教师页一致的卡片式） */
+        .result-box {
+            margin-top: 25px;
+            padding: 25px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            display: none;
+            background-color: #f8f9fa;
+        }
+        .result-item {
+            margin-bottom: 12px;
+            font-size: 16px;
+            color: #333;
+            line-height: 1.6;
+        }
+        .result-item label {
+            display: inline-block;
+            width: 100px;
+            color: #0d6efd;
+            font-weight: 500;
+            margin-bottom: 0;
+        }
+        .result-item span {
+            color: #2c3e50;
+        }
+        /* 表格样式兜底（保留但隐藏，如需表格可开启） */
+        .result-table {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container-card">
+    <a href="/index.html" class="btn-back">返回首页</a>
+    <h2 class="title">查询课程信息</h2>
+
+    <!-- 有效课程号下拉框（自动加载） -->
+    <div class="form-group">
+        <label>选择课程号（自动加载）</label>
+        <select class="form-select" id="cnoSelect">
+            <option value="">请选择课程号...</option>
+        </select>
+    </div>
+
+    <form id="queryCourseForm">
+        <div class="form-group">
+            <label>课程号（必填，如C002）</label>
+            <input type="text" class="form-control" id="cno" required placeholder="请输入课程号">
+        </div>
+        <button type="submit" class="btn-query">查询</button>
+    </form>
+
+    <!-- 美化后的结果展示区（卡片式，与教师页一致） -->
+    <div class="result-box" id="resultArea">
+        <div class="result-item"><label>课程号：</label><span id="resCno">-</span></div>
+        <div class="result-item"><label>课程名：</label><span id="resCname">-</span></div>
+        <div class="result-item"><label>先修课号：</label><span id="resCpno">-</span></div>
+        <div class="result-item"><label>学分：</label><span id="resCcredit">-</span></div>
+        <div class="result-item"><label>学时：</label><span id="resCtime">-</span></div>
+        <div class="result-item"><label>开课院系：</label><span id="resCdept">-</span></div>
+        <div class="result-item"><label>授课教师：</label><span id="resTeacher">-</span></div>
+    </div>
+
+    <!-- 原表格结果区（保留，如需恢复可开启） -->
+    <div class="result-table" id="tableResultArea">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+            <tr>
+                <th>课程号</th>
+                <th>课程名</th>
+                <th>先修课号</th>
+                <th>学分</th>
+                <th>学时</th>
+                <th>开课院系</th>
+                <th>授课教师</th>
+            </tr>
+            </thead>
+            <tbody id="resultTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // 加载有效课程号（移除硬编码localhost，适配相对路径+携带凭证）
+    window.onload = function() {
+        fetch('/course/list', {
+            method: 'GET',
+            credentials: 'include' // 核心：携带登录凭证
+        })
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200 && res.data && res.data.length > 0) {
+                    const cnoSelect = document.getElementById('cnoSelect');
+                    res.data.forEach(course => {
+                        const option = document.createElement('option');
+                        option.value = course.cno;
+                        option.textContent = `${course.cno} - ${course.cname}`;
+                        cnoSelect.appendChild(option);
+                    });
+                } else {
+                    console.warn("加载课程列表失败：", res.msg);
+                }
+            })
+            .catch(err => console.error("加载课程列表异常：", err));
+
+        // 下拉框选课程号后自动填充
+        document.getElementById('cnoSelect').addEventListener('change', function() {
+            document.getElementById('cno').value = this.value;
+        });
+    };
+
+    // 查询逻辑（修复接口路径+错误处理，适配美化后的结果展示）
+    document.getElementById('queryCourseForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const cno = document.getElementById('cno').value.trim();
+
+        if (!cno) {
+            alert("请输入课程号！");
+            return;
+        }
+
+        // 显示结果区
+        document.getElementById('resultArea').style.display = 'block';
+
+        // 核心修复：调用正确的查询接口 /course/query
+        fetch(`/course/query/${cno}`, {
+            method: 'GET',
+            credentials: 'include' // 携带登录凭证
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("接口请求失败");
+                return res.json();
+            })
+            .then(res => {
+                if (res.code === 200 && res.data) {
+                    // 填充美化后的结果卡片
+                    document.getElementById('resCno').textContent = res.data.cno || '-';
+                    document.getElementById('resCname').textContent = res.data.cname || '-';
+                    document.getElementById('resCpno').textContent = res.data.cpno || '无';
+                    document.getElementById('resCcredit').textContent = res.data.ccredit || '-';
+                    document.getElementById('resCtime').textContent = res.data.ctime || '-';
+                    document.getElementById('resCdept').textContent = res.data.cdept || '-';
+                    document.getElementById('resTeacher').textContent = res.data.teacher || '-';
+                } else {
+                    // 友好提示未查询到
+                    alert(res.msg || "未查询到该课程！");
+                    // 重置结果卡片
+                    document.getElementById('resCno').textContent = '-';
+                    document.getElementById('resCname').textContent = '-';
+                    document.getElementById('resCpno').textContent = '-';
+                    document.getElementById('resCcredit').textContent = '-';
+                    document.getElementById('resCtime').textContent = '-';
+                    document.getElementById('resCdept').textContent = '-';
+                    document.getElementById('resTeacher').textContent = '-';
+                }
+            })
+            .catch(err => {
+                alert("查询异常：" + err.message);
+                // 重置结果卡片
+                document.getElementById('resCno').textContent = '-';
+                document.getElementById('resCname').textContent = '-';
+                document.getElementById('resCpno').textContent = '-';
+                document.getElementById('resCcredit').textContent = '-';
+                document.getElementById('resCtime').textContent = '-';
+                document.getElementById('resCdept').textContent = '-';
+                document.getElementById('resTeacher').textContent = '-';
+            });
+    });
+</script>
+</body>
+</html>

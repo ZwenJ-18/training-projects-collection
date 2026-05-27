@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>大学学生选课管理系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "SimSun", sans-serif;
+            transition: all 0.3s ease;
+        }
+        /* 科技感主配色 */
+        :root {
+            --main-color: #165DFF;
+            --light-color: #E8F3FF;
+            --text-color: #333;
+            --sidebar-bg: #0E2954;
+            --sidebar-text: #fff;
+        }
+        body {
+            background-color: #F5F7FA;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部导航栏 */
+        .top-nav {
+            background-color: white;
+            padding: 12px 2%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            z-index: 10;
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo {
+            width: 45px;
+            height: 45px;
+        }
+        .system-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--main-color);
+        }
+        .user-bar {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .login-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            color: var(--text-color);
+        }
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--main-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .logout-btn {
+            padding: 8px 16px;
+            background-color: #FF4D4F;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .logout-btn:hover {
+            background-color: #F5222D;
+        }
+
+        /* 主体区域（侧边栏+内容） */
+        .main-container {
+            display: flex;
+            flex: 1;
+            margin-top: 1px;
+        }
+
+        /* 侧边栏（科技感深色） */
+        .sidebar {
+            width: 220px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding: 20px 0;
+            height: calc(100vh - 69px);
+            overflow-y: auto;
+        }
+        .sidebar-menu {
+            margin-bottom: 25px;
+        }
+        .menu-title {
+            padding: 0 20px;
+            font-size: 14px;
+            color: #86909C;
+            margin-bottom: 10px;
+        }
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        .menu-item:hover, .menu-item.active {
+            background-color: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+        .menu-item i {
+            font-size: 18px;
+        }
+        .sub-menu {
+            display: none;
+            background-color: rgba(255,255,255,0.05);
+        }
+        .sub-menu-item {
+            padding: 10px 20px 10px 45px;
+            font-size: 14px;
+            color: #E5E7EB;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+        .sub-menu-item:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+        .menu-item.active + .sub-menu {
+            display: block;
+        }
+
+        /* 内容区域 */
+        .content-area {
+            flex: 1;
+            padding: 25px;
+            background-color: #F5F7FA;
+        }
+        .content-header {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+        .content-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 15px;
+        }
+
+        /* 底部信息 */
+        .footer {
+            background-color: var(--sidebar-bg);
+            color: white;
+            text-align: center;
+            padding: 12px 0;
+            font-size: 13px;
+        }
+
+        /* 通用美化弹窗样式 */
+        .modal-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            display: none; /* 默认隐藏 */
+        }
+        .modal-box {
+            width: 360px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        .modal-header {
+            padding: 15px 20px;
+            background-color: var(--main-color);
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-close {
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .modal-body {
+            padding: 20px;
+            font-size: 16px;
+            color: var(--text-color);
+            text-align: center;
+        }
+        .modal-footer {
+            padding: 15px 20px;
+            background-color: #F5F7FA;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .modal-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .modal-btn.cancel {
+            background-color: #E5E7EB;
+            color: var(--text-color);
+        }
+        .modal-btn.confirm {
+            background-color: var(--main-color);
+            color: white;
+        }
+        .modal-btn.confirm:hover {
+            background-color: #0E4CD3;
+        }
+        .modal-btn.success {
+            background-color: #52C41A;
+            color: white;
+        }
+        .modal-btn.success:hover {
+            background-color: #4CAF50;
+        }
+    </style>
+    <script>
+        // 侧边栏菜单展开/收起
+        function toggleMenu(menuId) {
+            const menuItem = document.getElementById(menuId);
+            // 移除其他菜单的active状态
+            document.querySelectorAll('.menu-item').forEach(item => {
+                if (item.id !== menuId) item.classList.remove('active');
+            });
+            // 切换当前菜单的active状态
+            menuItem.classList.toggle('active');
+        }
+
+        // 登录状态校验
+        window.onload = function() {
+            fetch('/getLoginUser', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.code !== 200) { location.href = '/login.html'; return; }
+                    if (res.data.role !== 'admin') {
+                        alert('仅管理员可访问系统首页！');
+                        location.href = res.data.role === 'student' ? '/modules/student/student-home.html' : '/modules/teacher/teacher-home.html';
+                        return;
+                    }
+                    document.getElementById('loginUserName').innerText = res.data.realName;
+                })
+                .catch(() => location.href = '/login.html');
+        }
+
+        // 显示退出确认弹窗
+        function showLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'flex';
+        }
+
+        // 隐藏退出确认弹窗
+        function hideLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'none';
+        }
+
+        // 显示退出成功弹窗
+        function showSuccessModal() {
+            document.getElementById('successModal').style.display = 'flex';
+        }
+
+        // 隐藏退出成功弹窗并跳转登录页
+        function hideSuccessModal() {
+            document.getElementById('successModal').style.display = 'none';
+            location.href = '/login.html';
+        }
+
+        // 确认退出登录
+        function confirmLogout() {
+            fetch('/logout', { method: 'POST' })
+                .then(() => {
+                    // 先隐藏退出确认弹窗
+                    hideLogoutModal();
+                    // 显示成功弹窗
+                    showSuccessModal();
+                })
+                .catch(() => {
+                    alert('退出失败，请稍后重试！');
+                    hideLogoutModal();
+                });
+        }
+    </script>
+</head>
+<body>
+<!-- 顶部导航栏 -->
+<div class="top-nav">
+    <div class="logo-area">
+        <img src="https://www.nankai.edu.cn/_upload/site/00/00/1/logo.png" class="logo" alt="大学logo">
+        <div class="system-name">大学学生选课管理系统</div>
+    </div>
+    <div class="user-bar">
+        <div class="login-user">
+            <div class="user-avatar"><<i class="fa-solid fa-user-shield"></i></div>
+            <span id="loginUserName">系统管理员</span>
+        </div>
+        <button class="logout-btn" onclick="showLogoutModal()">退出登录</button>
+    </div>
+</div>
+
+<!-- 退出确认弹窗 -->
+<div class="modal-mask" id="logoutModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span>退出登录</span>
+            <span class="modal-close" onclick="hideLogoutModal()"><<i class="fa-solid fa-xmark"></i></span>
+        </div>
+        <div class="modal-body">
+            确定要退出登录吗？
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn cancel" onclick="hideLogoutModal()">取消</button>
+            <button class="modal-btn confirm" onclick="confirmLogout()">确定</button>
+        </div>
+    </div>
+</div>
+
+<!-- 退出成功弹窗 -->
+<div class="modal-mask" id="successModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span>操作成功</span>
+            <span class="modal-close" onclick="hideSuccessModal()"><<i class="fa-solid fa-xmark"></i></span>
+        </div>
+        <div class="modal-body">
+            退出成功！
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn success" onclick="hideSuccessModal()">确定</button>
+        </div>
+    </div>
+</div>
+
+<!-- 主体区域 -->
+<div class="main-container">
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <div class="sidebar-menu">
+            <div class="menu-title">功能管理</div>
+            <div class="menu-item" id="query-menu" onclick="toggleMenu('query-menu')">
+                <<i class="fa-solid fa-magnifying-glass"></i>
+                <span>信息查询</span>
+            </div>
+            <div class="sub-menu">
+                <a href="/modules/student/query.html" class="sub-menu-item">查询学生信息</a>
+                <a href="/modules/teacher/query.html" class="sub-menu-item">查询教师信息</a>
+                <a href="/modules/course/query.html" class="sub-menu-item">查询课程信息</a>
+                <a href="/modules/dept/query.html" class="sub-menu-item">查询院系信息</a>
+                <a href="/modules/major/query.html" class="sub-menu-item">查询专业信息</a> <!-- 新增 -->
+                <a href="/modules/sct/query.html" class="sub-menu-item">查询选课信息</a>
+            </div>
+
+            <div class="menu-item" id="input-menu" onclick="toggleMenu('input-menu')">
+                <<i class="fa-solid fa-plus-circle"></i>
+                <span>信息录入</span>
+            </div>
+            <div class="sub-menu">
+                <a href="/modules/student/add.html" class="sub-menu-item">录入学生信息</a>
+                <a href="/modules/teacher/add.html" class="sub-menu-item">录入教师信息</a>
+                <a href="/modules/course/add.html" class="sub-menu-item">录入课程信息</a>
+                <a href="/modules/dept/add.html" class="sub-menu-item">录入院系信息</a>
+                <a href="/modules/major/add.html" class="sub-menu-item">录入专业信息</a> <!-- 新增 -->
+                <a href="/modules/sct/add.html" class="sub-menu-item">录入选课信息</a>
+            </div>
+
+            <div class="menu-item" id="delete-menu" onclick="toggleMenu('delete-menu')">
+                <<i class="fa-solid fa-trash-can"></i>
+                <span>信息删除</span>
+            </div>
+            <div class="sub-menu">
+                <a href="/modules/student/delete.html" class="sub-menu-item">删除学生信息</a>
+                <a href="/modules/teacher/delete.html" class="sub-menu-item">删除教师信息</a>
+                <a href="/modules/course/delete.html" class="sub-menu-item">删除课程信息</a>
+                <a href="/modules/dept/delete.html" class="sub-menu-item">删除院系信息</a>
+                <a href="/modules/major/delete.html" class="sub-menu-item">删除专业信息</a> <!-- 新增 -->
+                <a href="/modules/sct/delete.html" class="sub-menu-item">删除选课信息</a>
+            </div>
+
+            <div class="menu-item" id="update-menu" onclick="toggleMenu('update-menu')">
+                <<i class="fa-solid fa-pen-to-square"></i>
+                <span>信息修改</span>
+            </div>
+            <div class="sub-menu">
+                <a href="/modules/student/update.html" class="sub-menu-item">修改学生信息</a>
+                <a href="/modules/teacher/update.html" class="sub-menu-item">修改教师信息</a>
+                <a href="/modules/course/update.html" class="sub-menu-item">修改课程信息</a>
+                <a href="/modules/dept/update.html" class="sub-menu-item">修改院系信息</a>
+                <a href="/modules/major/update.html" class="sub-menu-item">修改专业信息</a> <!-- 新增 -->
+                <a href="/modules/sct/update.html" class="sub-menu-item">修改选课信息</a>
+            </div>
+
+            <div class="menu-item" id="browse-menu" onclick="toggleMenu('browse-menu')">
+                <<i class="fa-solid fa-list"></i>
+                <span>信息浏览</span>
+            </div>
+            <div class="sub-menu">
+                <a href="/modules/student/browse.html" class="sub-menu-item">浏览学生信息</a>
+                <a href="/modules/teacher/browse.html" class="sub-menu-item">浏览教师信息</a>
+                <a href="/modules/course/browse.html" class="sub-menu-item">浏览课程信息</a>
+                <a href="/modules/dept/browse.html" class="sub-menu-item">浏览院系信息</a>
+                <a href="/modules/major/browse.html" class="sub-menu-item">浏览专业信息</a> <!-- 新增 -->
+                <a href="/modules/sct/browse.html" class="sub-menu-item">浏览选课信息</a>
+            </div>
+
+            <div class="menu-item" id="report-menu" onclick="toggleMenu('report-menu')">
+                <<i class="fa-solid fa-chart-pie"></i>
+                <span>数据报表</span>
+            </div>
+            <div class="sub-menu">
+                <a href="/modules/report/studentReport.html" class="sub-menu-item">学生信息报表</a>
+                <a href="/modules/report/teacherReport.html" class="sub-menu-item">教师信息报表</a>
+                <a href="/modules/report/courseReport.html" class="sub-menu-item">课程信息报表</a>
+                <a href="/modules/report/deptReport.html" class="sub-menu-item">院系信息报表</a>
+                <a href="/modules/report/sctReport.html" class="sub-menu-item">选课信息报表</a>
+            </div>
+
+            <!-- 美化后的系统帮助菜单 -->
+            <div class="menu-item" id="help-menu" onclick="toggleMenu('help-menu')">
+                <<i class="fa-solid fa-question-circle"></i>
+                <span>系统帮助</span>
+            </div>
+            <div class="sub-menu">
+                <a href="/modules/help.html" class="sub-menu-item">使用说明</a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 内容区域 -->
+    <div class="content-area">
+        <div class="content-header">系统首页</div>
+        <div class="content-card">
+            <div class="card-title">欢迎使用学生选课管理系统</div>
+            <p style="color: #666; line-height: 1.6;">
+                您好，系统管理员！<br>
+                您可以通过左侧菜单管理学生、教师、课程等信息，支持查询、录入、修改、删除等操作。
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- 底部信息 -->
+<div class="footer">
+    大学学生选课管理系统 © 2025
+</div>
+</body>
+</html>

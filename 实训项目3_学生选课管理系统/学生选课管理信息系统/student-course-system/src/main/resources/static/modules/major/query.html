@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>查询专业信息</title>
+  <style>
+    .container {
+      width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #fff;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+    .back-btn {
+      background: #0d6efd;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    .page-title {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .form-item {
+      margin: 15px 0;
+    }
+    .form-item label {
+      display: inline-block;
+      width: 150px;
+      text-align: right;
+      margin-right: 10px;
+    }
+    .form-item select, .form-item input {
+      padding: 6px;
+      width: 300px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .query-btn {
+      width: 100%;
+      padding: 10px;
+      background: #0d6efd;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    .result-card {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      display: none; /* 默认隐藏 */
+    }
+    .result-card p {
+      margin: 8px 0;
+      line-height: 1.6;
+    }
+    .result-card span {
+      font-weight: 600;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <button class="back-btn" onclick="location.href='/index.html'">返回首页</button>
+  <div class="page-title">查询专业信息</div>
+
+  <div class="form-item">
+    <label>选择所属院系（自动加载）</label>
+    <select id="deptName" required>
+      <option value="">请选择院系...</option>
+    </select>
+  </div>
+  <div class="form-item">
+    <label>选择专业名称（必填）</label>
+    <select id="majorName" required>
+      <option value="">请先选择院系...</option>
+    </select>
+  </div>
+
+  <button class="query-btn" onclick="queryMajor()">查询</button>
+
+  <!-- 与学生页面一致的信息展示卡片 -->
+  <div class="result-card" id="resultCard">
+    <p><span>专业名称：</span><span id="showMajorName"></span></p>
+    <p><span>所属院系：</span><span id="showDeptName"></span></p>
+  </div>
+</div>
+
+<script>
+  // 加载院系列表
+  function loadDept() {
+    fetch('/department/list')
+            .then(res => res.json())
+            .then(res => {
+              const deptSelect = document.getElementById('deptName');
+              res.data.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept.dname;
+                option.textContent = dept.dname;
+                deptSelect.appendChild(option);
+              });
+            });
+  }
+
+  // 院系联动专业（与学生页面“选择学号”逻辑一致）
+  document.getElementById('deptName').addEventListener('change', function() {
+    const deptName = this.value;
+    const majorSelect = document.getElementById('majorName');
+    majorSelect.innerHTML = '<option value="">加载中...</option>';
+
+    if (!deptName) {
+      majorSelect.innerHTML = '<option value="">请先选择院系...</option>';
+      return;
+    }
+
+    fetch(`/department/major/list?deptName=${encodeURIComponent(deptName)}`)
+            .then(res => res.json())
+            .then(res => {
+              majorSelect.innerHTML = '<option value="">请选择专业...</option>';
+              res.data.forEach(major => {
+                const option = document.createElement('option');
+                option.value = major.majorName;
+                option.textContent = `${major.majorName} - ${major.deptName}`; // 与学生页面“学号-姓名”格式一致
+                majorSelect.appendChild(option);
+              });
+            });
+  });
+
+  // 查询专业（与学生页面查询逻辑一致）
+  function queryMajor() {
+    const deptName = document.getElementById('deptName').value;
+    const majorName = document.getElementById('majorName').value;
+
+    if (!deptName || !majorName) {
+      alert("请选择院系和专业！");
+      return;
+    }
+
+    // 匹配学生页面的“选择后自动填充+卡片展示”逻辑
+    document.getElementById('showMajorName').textContent = majorName;
+    document.getElementById('showDeptName').textContent = deptName;
+    document.getElementById('resultCard').style.display = 'block'; // 显示卡片
+  }
+
+  window.onload = loadDept;
+</script>
+</body>
+</html>

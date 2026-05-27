@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>修改院系信息</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            padding: 40px 0;
+        }
+        .container-card {
+            width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .title {
+            text-align: center;
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background-color: #0d6efd;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #495057;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background-color: #f39c12;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .btn-submit:hover {
+            background-color: #e67e22;
+        }
+    </style>
+</head>
+<body>
+<div class="container-card">
+    <a href="/index.html" class="btn-back">返回首页</a>
+    <h2 class="title">修改院系信息</h2>
+
+    <div class="form-group">
+        <label for="dnoSelect">选择要修改的院系</label>
+        <select class="form-select" id="dnoSelect" required>
+            <option value="">请选择院系号...</option>
+        </select>
+    </div>
+
+    <form id="updateDeptForm">
+        <div class="form-group">
+            <label for="dno">院系号（不可修改）</label>
+            <input type="text" id="dno" required readonly>
+        </div>
+        <div class="form-group">
+            <label for="dname">院系名称</label>
+            <input type="text" id="dname" placeholder="请输入院系名称" required>
+        </div>
+        <div class="form-group">
+            <label for="dmanager">院系负责人</label>
+            <input type="text" id="dmanager" placeholder="请输入院系负责人" required>
+        </div>
+        <button type="submit" class="btn-submit">提交修改</button>
+    </form>
+</div>
+
+<script>
+    function loadDeptList() {
+        fetch('http://localhost:8080/department/list')
+            .then(res => res.json())
+            .then(res => {
+                const dnoSelect = document.getElementById('dnoSelect');
+                if (res.code === 200 && res.data.length > 0) {
+                    res.data.forEach(dept => {
+                        const opt = document.createElement('option');
+                        opt.value = dept.dno;
+                        opt.textContent = `${dept.dno} - ${dept.dname}`;
+                        dnoSelect.appendChild(opt);
+                    });
+                }
+            });
+    }
+
+    document.getElementById('dnoSelect').addEventListener('change', function() {
+        const dno = this.value;
+        if (!dno) return;
+
+        fetch(`http://localhost:8080/department/query/${dno}`)
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200 && res.data) {
+                    const dept = res.data;
+                    document.getElementById('dno').value = dept.dno;
+                    document.getElementById('dname').value = dept.dname;
+                    document.getElementById('dmanager').value = dept.dmanager;
+                }
+            });
+    });
+
+    document.getElementById('updateDeptForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const dept = {
+            dno: document.getElementById('dno').value.trim(),
+            dname: document.getElementById('dname').value.trim(),
+            dmanager: document.getElementById('dmanager').value.trim()
+        };
+
+        fetch('http://localhost:8080/department/update', {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(dept)
+        })
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200) {
+                    alert('修改院系信息成功！');
+                } else {
+                    alert('修改失败：' + res.msg);
+                }
+            })
+            .catch(err => {
+                alert('网络错误：' + err.message);
+            });
+    });
+
+    window.onload = loadDeptList;
+</script>
+</body>
+</html>

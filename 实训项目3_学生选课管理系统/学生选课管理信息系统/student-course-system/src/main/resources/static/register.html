@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>学生选课系统-注册</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 新增：引入MD5加密工具库（用于密码加密） -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #165DFF 0%, #0E2954 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .register-container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 40px 35px;
+        }
+        .register-title {
+            font-size: 24px;
+            color: #0E2954;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+        .role-tab {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        .role-tab-item {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+        }
+        .role-tab-item.active {
+            border-color: #165DFF;
+            background: #E8F3FF;
+            color: #165DFF;
+        }
+        .form-item {
+            margin-bottom: 20px;
+        }
+        .form-item label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-size: 14px;
+        }
+        .form-item input {
+            width: 100%;
+            height: 42px;
+            padding: 0 15px;
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        .form-item input:focus {
+            outline: none;
+            border-color: #165DFF;
+        }
+        .form-item .tip {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+        .form-item .error-tip {
+            font-size: 12px;
+            color: #FF4D4F;
+            margin-top: 5px;
+            display: none;
+        }
+        .gender-wrap {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            padding: 8px 0;
+        }
+        .gender-wrap input {
+            width: auto;
+            margin-right: 6px;
+        }
+        .gender-wrap label {
+            display: inline-block;
+            width: auto;
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+        .btn-register {
+            width: 100%;
+            height: 45px;
+            background: #165DFF;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        .btn-register:hover {
+            background: #0E4CD3;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+        .login-link a {
+            color: #165DFF;
+            text-decoration: none;
+        }
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        .form-section {
+            display: none;
+        }
+        .form-section.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="register-container">
+    <h2 class="register-title">用户注册</h2>
+    <!-- 角色选择标签 -->
+    <div class="role-tab">
+        <div class="role-tab-item active" onclick="switchRole('student')">学生</div>
+        <div class="role-tab-item" onclick="switchRole('teacher')">教师</div>
+    </div>
+    <!-- 学生注册表单（保留原有逻辑） -->
+    <div class="form-section active" id="student-form">
+        <div class="form-item">
+            <label>学号</label>
+            <input type="text" id="stu-sno" value="202324115131" placeholder="请输入12位学号" />
+            <div class="error-tip" id="stu-sno-error"></div>
+            <div class="tip">示例：202324115131</div>
+        </div>
+        <div class="form-item">
+            <label>姓名</label>
+            <input type="text" id="stu-name" value="叶瑾柔" placeholder="需与管理员录入一致" />
+            <div class="error-tip" id="stu-name-error"></div>
+        </div>
+        <div class="form-item">
+            <label>密码</label>
+            <input type="password" id="stu-pwd" placeholder="请输入密码（≥6位）" />
+            <div class="error-tip" id="stu-pwd-error"></div>
+        </div>
+        <div class="form-item">
+            <label>确认密码</label>
+            <input type="password" id="stu-repwd" placeholder="请再次输入密码" />
+            <div class="error-tip" id="stu-repwd-error"></div>
+        </div>
+        <div class="form-item">
+            <label>性别</label>
+            <div class="gender-wrap">
+                <input type="radio" name="stu-sex" id="stu-male" value="男" checked />
+                <label for="stu-male">男</label>
+                <input type="radio" name="stu-sex" id="stu-female" value="女" />
+                <label for="stu-female">女</label>
+            </div>
+        </div>
+        <div class="form-item">
+            <label>年龄</label>
+            <input type="number" id="stu-age" value="21" min="14" max="24" />
+            <div class="error-tip" id="stu-age-error"></div>
+        </div>
+    </div>
+    <!-- 教师注册表单（适配Teacher实体类） -->
+    <div class="form-section" id="teacher-form">
+        <div class="form-item">
+            <label>教工号</label>
+            <input type="text" id="tea-tno" placeholder="请输入8位教工号（T+7位数字）" />
+            <div class="error-tip" id="tea-tno-error"></div>
+            <div class="tip">示例：T2024001（符合TeacherController校验规则）</div>
+        </div>
+        <div class="form-item">
+            <label>姓名</label>
+            <input type="text" id="tea-name" placeholder="需与管理员录入一致" />
+            <div class="error-tip" id="tea-name-error"></div>
+        </div>
+        <div class="form-item">
+            <label>密码</label>
+            <input type="password" id="tea-pwd" placeholder="请输入密码（≥6位）" />
+            <div class="error-tip" id="tea-pwd-error"></div>
+        </div>
+        <div class="form-item">
+            <label>确认密码</label>
+            <input type="password" id="tea-repwd" placeholder="请再次输入密码" />
+            <div class="error-tip" id="tea-repwd-error"></div>
+        </div>
+        <div class="form-item">
+            <label>性别</label>
+            <div class="gender-wrap">
+                <input type="radio" name="tea-sex" id="tea-male" value="男" checked />
+                <label for="tea-male">男</label>
+                <input type="radio" name="tea-sex" id="tea-female" value="女" />
+                <label for="tea-female">女</label>
+            </div>
+        </div>
+        <div class="form-item">
+            <label>年龄</label>
+            <input type="number" id="tea-age" min="24" max="60" placeholder="请输入24-60之间的年龄" />
+            <div class="error-tip" id="tea-age-error"></div>
+            <div class="tip">符合TeacherController年龄校验规则</div>
+        </div>
+    </div>
+    <button class="btn-register" onclick="submitRegister()">注册</button>
+    <div class="login-link">
+        已有账号？<a href="/login.html">立即登录</a>
+    </div>
+</div>
+<script>
+    let currentRole = 'student'; // 默认学生角色
+    const fetchConfig = {
+        credentials: 'include',
+        headers: {'Content-Type': 'application/json'}
+    };
+    // 切换注册角色
+    function switchRole(role) {
+        currentRole = role;
+        // 切换标签样式
+        document.querySelectorAll('.role-tab-item').forEach(item => item.classList.remove('active'));
+        document.querySelector(`.role-tab-item[onclick="switchRole('${role}')"]`).classList.add('active');
+        // 切换表单显示
+        document.querySelectorAll('.form-section').forEach(section => section.classList.remove('active'));
+        document.getElementById(`${role}-form`).classList.add('active');
+    }
+    // 显示错误提示
+    function showError(id, msg) {
+        const tip = document.getElementById(id);
+        tip.style.display = 'block';
+        tip.innerText = msg;
+    }
+    // 提交注册
+    function submitRegister() {
+        // 清空所有错误提示
+        document.querySelectorAll('.error-tip').forEach(tip => {
+            tip.style.display = 'none';
+            tip.innerText = '';
+        });
+        if (currentRole === 'student') {
+            submitStudentRegister();
+        } else if (currentRole === 'teacher') {
+            submitTeacherRegister();
+        }
+    }
+    // 学生注册（保留原有逻辑，适配/student/register接口）
+    function submitStudentRegister() {
+        const sno = document.getElementById('stu-sno').value.trim();
+        const sname = document.getElementById('stu-name').value.trim();
+        const pwd = document.getElementById('stu-pwd').value.trim();
+        const repwd = document.getElementById('stu-repwd').value.trim();
+        const ssex = document.querySelector('input[name="stu-sex"]:checked').value;
+        const sage = parseInt(document.getElementById('stu-age').value.trim());
+        // 前端校验
+        if (sno.length !== 12) {
+            showError('stu-sno-error', '学号必须为12位！');
+            return;
+        }
+        if (!sname) {
+            showError('stu-name-error', '姓名不能为空！');
+            return;
+        }
+        if (pwd.length < 6) {
+            showError('stu-pwd-error', '密码长度不能少于6位！');
+            return;
+        }
+        if (pwd !== repwd) {
+            showError('stu-repwd-error', '两次密码不一致！');
+            return;
+        }
+        if (isNaN(sage) || sage < 14 || sage > 24) {
+            showError('stu-age-error', '年龄必须在14-24之间！');
+            return;
+        }
+        // 密码MD5加密（与后端一致）
+        const encryptPwd = md5(pwd);
+        // 先校验学号是否存在（管理员已添加）
+        fetch(`http://localhost:8080/student/${sno}`, fetchConfig)
+            .then(res => res.json())
+            .then(checkRes => {
+                if (checkRes.code !== 200) {
+                    alert("注册失败：" + checkRes.msg + "（请联系管理员添加）");
+                    return;
+                }
+                // 校验姓名与管理员录入一致
+                if (checkRes.data.sname !== sname) {
+                    alert(`注册失败：姓名与学号【${sno}】绑定的姓名（${checkRes.data.sname}）不一致！`);
+                    return;
+                }
+                // 提交注册（密码传加密后的值）
+                const registerData = { sno, sname, password: encryptPwd, ssex, sage };
+                fetch('http://localhost:8080/student/register', {
+                    method: 'POST',
+                    ...fetchConfig,
+                    body: JSON.stringify(registerData)
+                }).then(res => res.json())
+                    .then(res => {
+                        alert(res.msg || '操作完成');
+                        if (res.code === 200) {
+                            window.location.href = '/login.html?role=student';
+                        }
+                    }).catch(err => {
+                    alert("注册请求失败：" + err.message);
+                });
+            })
+            .catch(err => {
+                alert("校验学号失败：" + err.message);
+            });
+    }
+    // 教师注册（适配/teacher/register接口，解决密码加密问题）
+    function submitTeacherRegister() {
+        const tno = document.getElementById('tea-tno').value.trim();
+        const tname = document.getElementById('tea-name').value.trim();
+        const pwd = document.getElementById('tea-pwd').value.trim();
+        const repwd = document.getElementById('tea-repwd').value.trim();
+        const tsex = document.querySelector('input[name="tea-sex"]:checked').value;
+        const tage = parseInt(document.getElementById('tea-age').value.trim());
+        // 前端校验（匹配TeacherController规则）
+        if (!/^T\d{7}$/.test(tno)) {
+            showError('tea-tno-error', '教工号格式错误！需为T+7位数字（如T2024001）');
+            return;
+        }
+        if (!tname) {
+            showError('tea-name-error', '姓名不能为空！');
+            return;
+        }
+        if (pwd.length < 6) {
+            showError('tea-pwd-error', '密码长度不能少于6位！');
+            return;
+        }
+        if (pwd !== repwd) {
+            showError('tea-repwd-error', '两次密码不一致！');
+            return;
+        }
+        if (isNaN(tage) || tage < 24 || tage > 60) {
+            showError('tea-age-error', '年龄必须在24-60之间（符合教师身份）！');
+            return;
+        }
+        // 密码MD5加密（与后端UserServiceImpl加密规则一致）
+        const encryptPwd = md5(pwd);
+        // 先校验教工号是否存在（管理员已添加）
+        fetch(`http://localhost:8080/teacher/${tno}`, fetchConfig)
+            .then(res => res.json())
+            .then(checkRes => {
+                if (checkRes.code !== 200) {
+                    alert("注册失败：" + checkRes.msg + "（请联系管理员添加）");
+                    return;
+                }
+                // 校验姓名与管理员录入一致
+                if (checkRes.data.tname !== tname) {
+                    alert(`注册失败：姓名与教工号【${tno}】绑定的姓名（${checkRes.data.tname}）不一致！`);
+                    return;
+                }
+                // 提交注册（密码传加密后的值，适配TeacherController）
+                const registerData = { tno, tname, password: encryptPwd, tsex, tage };
+                fetch('http://localhost:8080/teacher/register', {
+                    method: 'POST',
+                    ...fetchConfig,
+                    body: JSON.stringify(registerData)
+                }).then(res => res.json())
+                    .then(res => {
+                        alert(res.msg || '注册成功！请使用教工号和注册密码登录');
+                        if (res.code === 200) {
+                            window.location.href = '/login.html?role=teacher';
+                        }
+                    }).catch(err => {
+                    alert("注册请求失败：" + err.message);
+                });
+            })
+            .catch(err => {
+                alert("校验教工号失败：" + err.message);
+            });
+    }
+    // 页面加载时从URL参数获取角色（如从登录页跳转）
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const role = urlParams.get('role');
+        if (role === 'teacher') {
+            switchRole('teacher');
+        }
+    }
+</script>
+</body>
+</html>

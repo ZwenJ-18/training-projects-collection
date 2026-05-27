@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>添加专业信息</title>
+    <style>
+        .container {
+            width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-btn {
+            background: #0d6efd;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .page-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .form-item {
+            margin: 15px 0;
+        }
+        .form-item label {
+            display: inline-block;
+            width: 150px;
+            text-align: right;
+            margin-right: 10px;
+        }
+        .form-item select, .form-item input {
+            padding: 6px;
+            width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 10px;
+            background: #0d6efd;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <button class="back-btn" onclick="location.href='/index.html'">返回首页</button>
+    <div class="page-title">添加专业信息</div>
+
+    <div class="form-item">
+        <label>专业名称（必填）</label>
+        <input type="text" id="majorName" placeholder="请输入专业名称" required>
+    </div>
+    <div class="form-item">
+        <label>所属院系（必填）</label>
+        <select id="deptName" required>
+            <option value="">请选择院系...</option>
+        </select>
+    </div>
+
+    <button class="submit-btn" onclick="addMajor()">提交</button>
+</div>
+
+<script>
+    // 加载院系列表（与学生页面下拉框逻辑一致）
+    function loadDept() {
+        fetch('/department/list')
+            .then(res => res.json())
+            .then(res => {
+                const deptSelect = document.getElementById('deptName');
+                res.data.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept.dname;
+                    option.textContent = dept.dname;
+                    deptSelect.appendChild(option);
+                });
+            });
+    }
+
+    // 添加专业（与学生添加逻辑一致）
+    function addMajor() {
+        const majorName = document.getElementById('majorName').value.trim();
+        const deptName = document.getElementById('deptName').value;
+
+        if (!majorName || !deptName) {
+            alert("请填写完整信息！");
+            return;
+        }
+
+        fetch('/department/major/add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({majorName: majorName, deptName: deptName})
+        }).then(res => res.json())
+            .then(res => {
+                alert(res.msg);
+                if (res.code === 200) {
+                    location.reload(); // 成功后刷新页面
+                }
+            });
+    }
+
+    window.onload = loadDept;
+</script>
+</body>
+</html>

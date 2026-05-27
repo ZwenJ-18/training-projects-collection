@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>系统帮助及使用说明</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .container {
+            margin-top: 30px;
+            width: 80%;
+        }
+        /* 返回按钮样式 */
+        .back-btn-area {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .back-btn {
+            padding: 8px 20px;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .back-btn:hover {
+            background-color: #0b5ed7;
+        }
+        .help-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f5f7fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        h3 {
+            color: #0d6efd;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        h3 i {
+            font-size: 20px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h2 {
+            color: #212529;
+            font-weight: 600;
+        }
+    </style>
+    <script>
+        // 返回首页函数
+        function goBackToHome() {
+            location.href = '/index.html'; // 替换为你的系统首页路径
+        }
+    </script>
+</head>
+<body>
+<div class="container">
+    <!-- 返回按钮区域 -->
+    <div class="back-btn-area">
+        <button class="back-btn" onclick="goBackToHome()">
+            <i class="fa-solid fa-arrow-left"></i>
+            返回系统首页
+        </button>
+    </div>
+
+    <h2 class="text-center mb-4">系统帮助及使用说明</h2>
+
+    <div class="help-section">
+        <h3><i class="fa-solid fa-cubes"></i>一、功能模块说明</h3>
+        <ul>
+            <li><b>信息查询</b>：支持学生、教师、课程等信息的模糊/精准查询</li>
+            <li><b>信息录入</b>：管理员可添加学生、教师、课程、院系等基础数据</li>
+            <li><b>信息修改</b>：支持对已有数据的编辑更新（如学生信息、课程信息）</li>
+            <li><b>信息删除</b>：删除无效的学生、教师、课程等数据（需谨慎操作）</li>
+            <li><b>数据报表</b>：生成学生/教师/课程/选课等信息的统计报表，支持筛选和打印</li>
+        </ul>
+    </div>
+
+    <div class="help-section">
+        <h3><i class="fa-solid fa-hand-pointer"></i>二、操作指引</h3>
+        <ul>
+            <li>1. 报表打印：进入对应报表页面后，点击“打印报表”按钮即可调用浏览器打印功能</li>
+            <li>2. 筛选数据：报表页面可通过下拉框选择条件（如院系），点击“查询”获取筛选结果</li>
+            <li>3. 数据录入：进入“信息录入”模块，填写表单后点击“提交”即可新增数据</li>
+        </ul>
+    </div>
+
+    <div class="help-section">
+        <h3><i class="fa-solid fa-triangle-exclamation"></i>三、注意事项</h3>
+        <ul>
+            <li>1. 操作前请确认数据准确性，删除操作不可恢复</li>
+            <li>2. 报表打印前建议预览格式，确保内容完整</li>
+            <li>3. 如遇功能异常，请刷新页面或联系系统管理员</li>
+        </ul>
+    </div>
+</div>
+</body>
+</html>

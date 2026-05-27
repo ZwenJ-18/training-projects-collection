@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>修改专业信息</title>
+    <style>
+        .container {
+            width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-btn {
+            background: #0d6efd;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .page-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .form-item {
+            margin: 15px 0;
+        }
+        .form-item label {
+            display: inline-block;
+            width: 120px;
+            text-align: right;
+            margin-right: 10px;
+        }
+        .form-item select, .form-item input {
+            padding: 6px;
+            width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .update-btn {
+            width: 100%;
+            padding: 10px;
+            background: #0d6efd;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <button class="back-btn" onclick="location.href='/index.html'">返回首页</button>
+    <div class="page-title">修改专业信息</div>
+
+    <div class="form-item">
+        <label>选择所属院系</label>
+        <select id="deptName" required>
+            <option value="">请选择院系...</option>
+        </select>
+    </div>
+    <div class="form-item">
+        <label>选择原专业名称</label>
+        <select id="oldMajorName" required>
+            <option value="">请先选择院系...</option>
+        </select>
+    </div>
+    <div class="form-item">
+        <label>新专业名称（必填）</label>
+        <input type="text" id="newMajorName" placeholder="请输入新专业名称" required>
+    </div>
+
+    <button class="update-btn" onclick="updateMajor()">修改</button>
+</div>
+
+<script>
+    // 加载院系列表
+    function loadDept() {
+        fetch('/department/list')
+            .then(res => res.json())
+            .then(res => {
+                const deptSelect = document.getElementById('deptName');
+                res.data.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept.dname;
+                    option.textContent = dept.dname;
+                    deptSelect.appendChild(option);
+                });
+            });
+    }
+
+    // 院系联动原专业
+    document.getElementById('deptName').addEventListener('change', function() {
+        const deptName = this.value;
+        const oldMajorSelect = document.getElementById('oldMajorName');
+        oldMajorSelect.innerHTML = '<option value="">加载中...</option>';
+
+        if (!deptName) {
+            oldMajorSelect.innerHTML = '<option value="">请先选择院系...</option>';
+            return;
+        }
+
+        fetch(`/department/major/list?deptName=${encodeURIComponent(deptName)}`)
+            .then(res => res.json())
+            .then(res => {
+                oldMajorSelect.innerHTML = '<option value="">请选择原专业...</option>';
+                res.data.forEach(major => {
+                    const option = document.createElement('option');
+                    option.value = major.majorName;
+                    option.textContent = major.majorName;
+                    oldMajorSelect.appendChild(option);
+                });
+            });
+    });
+
+    // 修改专业
+    function updateMajor() {
+        const deptName = document.getElementById('deptName').value;
+        const oldName = document.getElementById('oldMajorName').value;
+        const newName = document.getElementById('newMajorName').value.trim();
+
+        if (!deptName || !oldName || !newName) {
+            alert("请填写完整信息！");
+            return;
+        }
+
+        fetch('/department/major/update', {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({oldMajorName: oldName, newMajorName: newName, deptName: deptName})
+        }).then(res => res.json())
+            .then(res => {
+                alert(res.msg);
+                if (res.code === 200) {
+                    location.reload();
+                }
+            });
+    }
+
+    window.onload = loadDept;
+</script>
+</body>
+</html>

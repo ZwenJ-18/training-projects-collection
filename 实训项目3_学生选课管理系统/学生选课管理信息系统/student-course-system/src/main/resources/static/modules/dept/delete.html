@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>删除院系信息</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            padding: 40px 0;
+        }
+        .container {
+            width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .title {
+            text-align: center;
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background-color: #0d6efd;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #495057;
+        }
+        .btn-delete {
+            width: 100%;
+            padding: 12px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .btn-delete:hover {
+            background-color: #bb2d3b;
+        }
+        .error-tip {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 8px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="/index.html" class="btn-back">返回首页</a>
+    <h2 class="title">删除院系信息</h2>
+
+    <div class="form-group">
+        <label>选择要删除的院系编号</label>
+        <select class="form-select" id="deptSelect" required>
+            <option value="">请选择院系号...</option>
+        </select>
+        <div id="deptError" class="error-tip">该院系下有学生，无法删除！</div>
+    </div>
+
+    <form id="deleteDeptForm">
+        <div class="form-group">
+            <label>院系编号（必填）</label>
+            <input type="text" id="dno" placeholder="请选择院系号" required readonly>
+        </div>
+        <button type="submit" class="btn-delete">确认删除</button>
+    </form>
+</div>
+
+<script>
+    // 加载院系列表（和课程删除完全一致）
+    function loadDeptList() {
+        const deptSelect = document.getElementById('deptSelect');
+        deptSelect.innerHTML = '<option value="">请选择院系号...</option>';
+
+        // 调用批量查询接口，一次性获取所有院系的学生状态
+        fetch('http://localhost:8080/department/checkHasStudent')
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200) {
+                    res.data.forEach(item => {
+                        const opt = document.createElement('option');
+                        opt.value = item.dno;
+                        // 和课程一样：有学生就标注+禁用
+                        if (item.hasStudent) {
+                            opt.disabled = true;
+                            opt.textContent = `${item.dno} - ${item.dname}（有学生，无法删除）`;
+                        } else {
+                            opt.textContent = `${item.dno} - ${item.dname}`;
+                        }
+                        deptSelect.appendChild(opt);
+                    });
+                }
+            });
+    }
+
+    // 下拉框选择事件
+    document.getElementById('deptSelect').addEventListener('change', function() {
+        const dno = this.value;
+        document.getElementById('dno').value = dno;
+        const selectedOption = this.options[this.selectedIndex];
+        document.getElementById('deptError').style.display = selectedOption.disabled ? 'block' : 'none';
+    });
+
+    // 提交删除
+    document.getElementById('deleteDeptForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const dno = document.getElementById('dno').value.trim();
+        const selectedOption = document.getElementById('deptSelect').options[document.getElementById('deptSelect').selectedIndex];
+
+        if (!dno) {
+            alert('请选择要删除的院系号！');
+            return;
+        }
+        if (selectedOption.disabled) {
+            alert('删除失败：该院系下有学生，无法删除！');
+            return;
+        }
+        if (!confirm(`确定要删除院系【${dno}】吗？`)) {
+            return;
+        }
+
+        fetch(`http://localhost:8080/department/delete/${dno}`, {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'}
+        })
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200) {
+                    alert('删除院系成功！');
+                    this.reset();
+                    loadDeptList();
+                } else {
+                    alert(`删除失败：${res.msg}`);
+                }
+            })
+            .catch(err => {
+                alert('网络错误：' + err.message);
+            });
+    });
+
+    window.onload = loadDeptList;
+</script>
+</body>
+</html>

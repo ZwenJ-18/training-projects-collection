@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>学生选课系统-数据报表</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        /* 新增：返回按钮样式 */
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .back-btn {
+            padding: 8px 20px;
+            background: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .back-btn:hover {
+            background: #0b5ed7;
+        }
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .stat-item {
+            display: inline-block;
+            width: 180px;
+            height: 80px;
+            line-height: 80px;
+            text-align: center;
+            background: #0d6efd;
+            color: white;
+            border-radius: 8px;
+            margin: 0 10px 10px 0;
+            font-size: 16px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #0d6efd;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .tab-nav {
+            margin-bottom: 15px;
+        }
+        .tab-nav button {
+            padding: 8px 16px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 4px;
+            background: #0d6efd;
+            color: white;
+            cursor: pointer;
+        }
+        .tab-nav button:hover {
+            background: #0b5ed7;
+        }
+        .hide {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- 新增：顶部标题+返回主页面按钮 -->
+    <div class="header-bar">
+        <h1 class="page-title">数据报表管理</h1>
+        <button class="back-btn" onclick="goBackMain()">🔙 返回主页面</button>
+    </div>
+
+    <!-- 数据概览模块 -->
+    <div class="card">
+        <div class="title">数据概览</div>
+        <div id="overviewStats"></div>
+
+        <div class="title mt-3">院系学生分布</div>
+        <table id="deptStudentTable" class="mt-2">
+            <thead>
+            <tr>
+                <th>院系名称</th>
+                <th>学生数量</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <div class="title mt-3">课程选课人数分布</div>
+        <table id="courseScTable" class="mt-2">
+            <thead>
+            <tr>
+                <th>课程名称</th>
+                <th>选课人数</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- 标签页导航 -->
+    <div class="tab-nav">
+        <button onclick="showTab('studentTab')">学生明细</button>
+        <button onclick="showTab('teacherTab')">教师明细</button>
+        <button onclick="showTab('courseTab')">课程明细</button>
+        <button onclick="showTab('scTab')">选课明细</button>
+    </div>
+
+    <!-- 学生明细报表 -->
+    <div id="studentTab" class="card">
+        <div class="title">学生明细报表</div>
+        <table id="studentTable">
+            <thead>
+            <tr>
+                <th>学号</th>
+                <th>姓名</th>
+                <th>性别</th>
+                <th>年龄</th>
+                <th>所属院系</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- 教师明细报表 -->
+    <div id="teacherTab" class="card hide">
+        <div class="title">教师明细报表</div>
+        <table id="teacherTable">
+            <thead>
+            <tr>
+                <th>教师号</th>
+                <th>姓名</th>
+                <th>性别</th>
+                <th>年龄</th>
+                <th>所属院系</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- 课程明细报表 -->
+    <div id="courseTab" class="card hide">
+        <div class="title">课程明细报表</div>
+        <table id="courseTable">
+            <thead>
+            <tr>
+                <th>课程号</th>
+                <th>课程名</th>
+                <th>先修课</th>
+                <th>学分</th>
+                <th>授课院系</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- 选课明细报表 -->
+    <div id="scTab" class="card hide">
+        <div class="title">选课明细报表</div>
+        <table id="scTable">
+            <thead>
+            <tr>
+                <th>学号</th>
+                <th>课程号</th>
+                <th>成绩</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // 新增：返回主页面函数
+    function goBackMain() {
+        location.href = '/index.html';
+    }
+
+    // 页面加载时初始化所有报表数据
+    window.onload = function() {
+        loadOverview();
+        loadStudentDetail();
+        loadTeacherDetail();
+        loadCourseDetail();
+        loadScDetail();
+    }
+
+    // 1. 加载数据概览报表
+    function loadOverview() {
+        fetch('http://localhost:8080/report/overview')
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200) {
+                    // 渲染基础统计
+                    let statsHtml = `
+                        <div class="stat-item">总学生数：${res.data.studentTotal || 0}</div>
+                        <div class="stat-item">总教师数：${res.data.teacherTotal || 0}</div>
+                        <div class="stat-item">总课程数：${res.data.courseTotal || 0}</div>
+                        <div class="stat-item">总院系数：${res.data.deptTotal || 0}</div>
+                        <div class="stat-item">总选课数：${res.data.scTotal || 0}</div>
+                    `;
+                    document.getElementById('overviewStats').innerHTML = statsHtml;
+
+                    // 渲染院系学生分布
+                    let deptStudentTbody = '';
+                    const deptStudentDist = res.data.deptStudentDist || {};
+                    for (let [deptName, count] of Object.entries(deptStudentDist)) {
+                        deptStudentTbody += `<tr><td>${deptName}</td><td>${count}</td></tr>`;
+                    }
+                    document.getElementById('deptStudentTable').querySelector('tbody').innerHTML = deptStudentTbody;
+
+                    // 渲染课程选课人数分布
+                    let courseScTbody = '';
+                    const courseScDist = res.data.courseScDist || {};
+                    for (let [courseName, count] of Object.entries(courseScDist)) {
+                        courseScTbody += `<tr><td>${courseName}</td><td>${count}</td></tr>`;
+                    }
+                    document.getElementById('courseScTable').querySelector('tbody').innerHTML = courseScTbody;
+                } else {
+                    alert('加载数据概览失败：' + res.msg);
+                }
+            })
+            .catch(err => {
+                alert('加载数据概览异常：' + err.message);
+            });
+    }
+
+    // 2. 加载学生明细报表
+    function loadStudentDetail() {
+        fetch('http://localhost:8080/report/studentDetail')
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200) {
+                    let tbody = '';
+                    res.data.forEach(student => {
+                        tbody += `<tr>
+                            <td>${student.sno || '-'}</td>
+                            <td>${student.sname || '-'}</td>
+                            <td>${student.ssex || '-'}</td>
+                            <td>${student.sage || '-'}</td>
+                            <td>${student.sdept || '-'}</td>
+                        </tr>`;
+                    });
+                    document.getElementById('studentTable').querySelector('tbody').innerHTML = tbody;
+                } else {
+                    alert('加载学生明细失败：' + res.msg);
+                }
+            })
+            .catch(err => {
+                alert('加载学生明细异常：' + err.message);
+            });
+    }
+
+    // 3. 加载教师明细报表
+    function loadTeacherDetail() {
+        fetch('http://localhost:8080/report/teacherDetail')
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200) {
+                    let tbody = '';
+                    res.data.forEach(teacher => {
+                        tbody += `<tr>
+                            <td>${teacher.tno || '-'}</td>
+                            <td>${teacher.tname || '-'}</td>
+                            <td>${teacher.tsex || '-'}</td>
+                            <td>${teacher.tage || '-'}</td>
+                            <td>${teacher.tdept || '-'}</td>
+                        </tr>`;
+                    });
+                    document.getElementById('teacherTable').querySelector('tbody').innerHTML = tbody;
+                } else {
+                    alert('加载教师明细失败：' + res.msg);
+                }
+            })
+            .catch(err => {
+                alert('加载教师明细异常：' + err.message);
+            });
+    }
+
+    // 4. 加载课程明细报表
+    function loadCourseDetail() {
+        fetch('http://localhost:8080/report/courseDetail')
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200) {
+                    let tbody = '';
+                    res.data.forEach(course => {
+                        tbody += `<tr>
+                            <td>${course.cno || '-'}</td>
+                            <td>${course.cname || '-'}</td>
+                            <td>${course.cpno || '-'}</td>
+                            <td>${course.ccredit || '-'}</td>
+                            <td>${course.cdept || '-'}</td>
+                        </tr>`;
+                    });
+                    document.getElementById('courseTable').querySelector('tbody').innerHTML = tbody;
+                } else {
+                    alert('加载课程明细失败：' + res.msg);
+                }
+            })
+            .catch(err => {
+                alert('加载课程明细异常：' + err.message);
+            });
+    }
+
+    // 5. 加载选课明细报表
+    function loadScDetail() {
+        fetch('http://localhost:8080/report/scDetail')
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200) {
+                    let tbody = '';
+                    res.data.forEach(sc => {
+                        tbody += `<tr>
+                            <td>${sc.sno || '-'}</td>
+                            <td>${sc.cno || '-'}</td>
+                            <td>${sc.grade || '-'}</td>
+                        </tr>`;
+                    });
+                    document.getElementById('scTable').querySelector('tbody').innerHTML = tbody;
+                } else {
+                    alert('加载选课明细失败：' + res.msg);
+                }
+            })
+            .catch(err => {
+                alert('加载选课明细异常：' + err.message);
+            });
+    }
+
+    // 切换标签页
+    function showTab(tabId) {
+        // 隐藏所有标签页
+        document.querySelectorAll('.card').forEach(card => {
+            if (card.id.includes('Tab')) {
+                card.classList.add('hide');
+            }
+        });
+        // 显示选中的标签页
+        document.getElementById(tabId).classList.remove('hide');
+    }
+</script>
+</body>
+</html>

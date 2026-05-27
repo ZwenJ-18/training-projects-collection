@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>学生首页 - 选课系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft YaHei", sans-serif; }
+        body { background-color: #f5f7fa; }
+        .header { background-color: #165DFF; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .container { width: 90%; margin: 30px auto; display: flex; gap: 20px; }
+        .course-card { flex: 1; background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        .card-title { color: #165DFF; font-size: 18px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+        .course-list { max-height: 400px; overflow-y: auto; }
+        .course-item { padding: 10px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+        .course-info { flex: 1; }
+        .course-opt button { padding: 4px 10px; border: none; border-radius: 4px; cursor: pointer; margin-left: 5px; }
+        .btn-select { background-color: #52C41A; color: white; }
+        .btn-drop { background-color: #FF4D4F; color: white; }
+        .btn-detail { background-color: #165DFF; color: white; }
+        .score-tag { color: #165DFF; font-weight: bold; }
+        .logout-btn { background-color: #FF4D4F; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-left: 10px; }
+        .modify-pwd-btn, .info-btn, .score-btn { background-color: #165DFF; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+        .pwd-modal, .info-modal, .course-detail-modal, .score-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+        .modal-content, .info-modal-content, .course-detail-content, .score-modal-content { background: white; margin: 100px auto; padding: 20px; border-radius: 8px; }
+        .modal-content, .info-modal-content { width: 400px; }
+        .course-detail-content { width: 500px; }
+        .score-modal-content { width: 600px; }
+        .modal-title { font-size: 18px; margin-bottom: 20px; color: #165DFF; }
+        .form-item { margin: 10px 0; }
+        .form-item label { display: inline-block; width: 80px; }
+        .form-item input, .form-item select { padding: 4px; width: 200px; border: 1px solid #ddd; border-radius: 4px; }
+        .modal-btn-group { margin-top: 20px; text-align: center; }
+        .modal-btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; margin: 0 5px; }
+        .confirm-btn { background-color: #165DFF; color: white; }
+        .cancel-btn { background-color: #999; color: white; }
+        .total-credit { float: right; color: #FF4D4F; font-weight: bold; }
+        .score-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .score-table th, .score-table td { border: 1px solid #eee; padding: 8px; text-align: center; }
+        .score-table th { background-color: #f5f7fa; color: #165DFF; }
+        .empty-tip { color: #999; text-align: center; padding: 20px; }
+    </style>
+</head>
+<body>
+<!-- 顶部导航 -->
+<div class="header">
+    <h2>学生选课系统</h2>
+    <div>
+        <span id="userName">加载中...</span>
+        <button class="info-btn" onclick="showInfoModal()">个人信息</button>
+        <button class="score-btn" onclick="showScoreModal()">成绩查询</button>
+        <button class="modify-pwd-btn" onclick="showPwdModal()">修改密码</button>
+        <button class="logout-btn" onclick="logout()">退出登录</button>
+    </div>
+</div>
+
+<!-- 主体内容 -->
+<div class="container">
+    <!-- 可选课程 -->
+    <div class="course-card">
+        <div class="card-title">可选课程</div>
+        <div class="course-list" id="courseList">
+            <div class="empty-tip">加载中...</div>
+        </div>
+    </div>
+
+    <!-- 已选课程 -->
+    <div class="course-card">
+        <div class="card-title">
+            已选课程
+            <span id="totalCredit" class="total-credit">已选学分：0</span>
+        </div>
+        <div class="course-list" id="selectedList">
+            <div class="empty-tip">加载中...</div>
+        </div>
+    </div>
+</div>
+
+<!-- 修改密码弹窗 -->
+<div class="pwd-modal" id="pwdModal">
+    <div class="modal-content">
+        <h3 class="modal-title">修改密码</h3>
+        <div class="form-item">
+            <label for="oldPwd">原密码：</label>
+            <input type="password" id="oldPwd">
+        </div>
+        <div class="form-item">
+            <label for="newPwd">新密码：</label>
+            <input type="password" id="newPwd">
+        </div>
+        <div class="form-item">
+            <label for="confirmPwd">确认新密码：</label>
+            <input type="password" id="confirmPwd">
+        </div>
+        <div class="modal-btn-group">
+            <button class="modal-btn confirm-btn" onclick="updatePassword()">确认修改</button>
+            <button class="modal-btn cancel-btn" onclick="hidePwdModal()">取消</button>
+        </div>
+    </div>
+</div>
+
+<!-- 个人信息修改弹窗 -->
+<div class="info-modal" id="infoModal">
+    <div class="info-modal-content">
+        <h3 class="modal-title">个人信息修改</h3>
+        <div class="form-item">
+            <label for="stuNo">学号：</label>
+            <input type="text" id="stuNo" disabled>
+        </div>
+        <div class="form-item">
+            <label for="stuName">真实姓名：</label>
+            <input type="text" id="stuName">
+        </div>
+        <div class="form-item">
+            <label for="stuGender">性别：</label>
+            <select id="stuGender">
+                <option value="男">男</option>
+                <option value="女">女</option>
+            </select>
+        </div>
+        <div class="form-item">
+            <label for="stuAge">年龄：</label>
+            <input type="number" id="stuAge" min="16" max="30">
+        </div>
+        <div class="form-item">
+            <label for="stuClass">班级：</label>
+            <input type="text" id="stuClass" placeholder="如：23电子1班">
+        </div>
+        <div class="form-item">
+            <label for="stuPhone">联系电话：</label>
+            <input type="text" id="stuPhone">
+        </div>
+        <div class="modal-btn-group">
+            <button class="modal-btn confirm-btn" onclick="saveUserInfo()">保存修改</button>
+            <button class="modal-btn cancel-btn" onclick="hideInfoModal()">取消</button>
+        </div>
+    </div>
+</div>
+
+<!-- 课程详情弹窗 -->
+<div class="course-detail-modal" id="courseDetailModal">
+    <div class="course-detail-content">
+        <h3 class="modal-title" id="courseDetailTitle">课程详情</h3>
+        <div id="courseDetailContent" style="line-height: 1.8;"></div>
+        <div class="modal-btn-group">
+            <button class="modal-btn confirm-btn" onclick="hideCourseDetailModal()">确定</button>
+        </div>
+    </div>
+</div>
+
+<!-- 成绩查询弹窗 -->
+<div class="score-modal" id="scoreModal">
+    <div class="score-modal-content">
+        <h3 class="modal-title">我的成绩</h3>
+        <table class="score-table">
+            <thead>
+            <tr>
+                <th>课程编号</th>
+                <th>课程名称</th>
+                <th>学分</th>
+                <th>学期</th>
+                <th>成绩</th>
+                <th>绩点</th>
+            </tr>
+            </thead>
+            <tbody id="scoreTableBody">
+            <tr><td colspan="6" class="empty-tip">正在查询成绩...</td></tr>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan="4" style="text-align: right; font-weight: bold;">平均绩点：</td>
+                <td colspan="2" id="avgGpa" style="color: #165DFF; font-weight: bold;">--</td>
+            </tr>
+            </tfoot>
+        </table>
+        <div class="modal-btn-group">
+            <button class="modal-btn confirm-btn" onclick="hideScoreModal()">确定</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 全局变量：当前登录学生信息
+    let currentUser = null;
+
+    // 统一请求配置（解决跨域+登录态）
+    const fetchConfig = {
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+
+    // 页面加载初始化
+    window.onload = function() {
+        // 获取登录用户信息
+        fetch('/getLoginUser', {
+            method: 'POST',
+            ...fetchConfig
+        })
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP错误码：${res.status}`);
+                return res.json();
+            })
+            .then(res => {
+                if (res.code === 200) {
+                    currentUser = res.data;
+                    // 过滤admin账号，禁止管理员操作
+                    if (currentUser.username === 'admin') {
+                        alert("管理员账号不支持学生端操作，请切换学生账号登录！");
+                        location.href = "/login.html";
+                        return;
+                    }
+                    document.getElementById('userName').innerText = currentUser.realName + "(" + currentUser.username + ")";
+                    // 加载可选课程、已选课程、已选学分
+                    loadCourseList();
+                    loadSelectedList();
+                    loadTotalCredit();
+                } else {
+                    alert("未登录，即将跳转到登录页");
+                    location.href = "/login.html";
+                }
+            }).catch(err => {
+            alert("获取登录信息失败：" + err.message);
+            location.href = "/login.html";
+        });
+    };
+
+    // 加载可选课程列表
+    function loadCourseList() {
+        fetch('/student/course/list', fetchConfig)
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP错误码：${res.status}`);
+                return res.json();
+            })
+            .then(res => {
+                if (res.code === 200) {
+                    const courseList = document.getElementById('courseList');
+                    courseList.innerHTML = "";
+                    if (res.data.length === 0) {
+                        courseList.innerHTML = '<div class="empty-tip">暂无可选课程</div>';
+                        return;
+                    }
+                    res.data.forEach(course => {
+                        const courseItem = document.createElement('div');
+                        courseItem.className = "course-item";
+                        courseItem.innerHTML = `
+                                <div class="course-info">
+                                    <div><strong>${course.cname}</strong> (${course.cno})</div>
+                                    <div>学分：${course.ccredit} | 学时：${course.ctime} | 院系：${course.cdept || '未知'}</div>
+                                    <div>授课教师：${course.teacher || '未知'} | 先修课：${course.cpno || "无"}</div>
+                                </div>
+                                <div class="course-opt">
+                                    <button class="btn-detail" onclick="showCourseDetail('${course.cno}', '${course.cname}')">详情</button>
+                                    <button class="btn-select" onclick="selectCourse('${course.cno}')">选课</button>
+                                </div>
+                            `;
+                        courseList.appendChild(courseItem);
+                    });
+                } else {
+                    alert("加载课程失败：" + res.msg);
+                    document.getElementById('courseList').innerHTML = '<div class="empty-tip">加载课程失败</div>';
+                }
+            }).catch(err => {
+            alert("加载课程失败：" + err.message);
+            document.getElementById('courseList').innerHTML = '<div class="empty-tip">加载课程失败</div>';
+        });
+    }
+
+    // 加载已选课程列表
+    function loadSelectedList() {
+        fetch('/student/course/selected', fetchConfig)
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP错误码：${res.status}`);
+                return res.json();
+            })
+            .then(res => {
+                if (res.code === 200) {
+                    const selectedList = document.getElementById('selectedList');
+                    selectedList.innerHTML = "";
+                    // 先获取所有课程信息
+                    fetch('/student/course/list', fetchConfig)
+                        .then(courseRes => {
+                            if (!courseRes.ok) throw new Error(`HTTP错误码：${courseRes.status}`);
+                            return courseRes.json();
+                        })
+                        .then(courseData => {
+                            const allCourses = courseData.data || [];
+                            if (res.data.length === 0) {
+                                selectedList.innerHTML = '<div class="empty-tip">暂无已选课程</div>';
+                                loadTotalCredit();
+                                return;
+                            }
+                            res.data.forEach(sct => {
+                                // 查询课程成绩
+                                fetch(`/student/course/score?cno=${sct.cno}`, fetchConfig)
+                                    .then(scoreRes => {
+                                        if (!scoreRes.ok) throw new Error(`HTTP错误码：${scoreRes.status}`);
+                                        return scoreRes.json();
+                                    })
+                                    .then(scoreData => {
+                                        let scoreHtml = "未录入成绩";
+                                        if (scoreData.code === 200 && scoreData.data && scoreData.data !== '未录入') {
+                                            scoreHtml = `<span class="score-tag">成绩：${scoreData.data}</span>`;
+                                        }
+                                        // 匹配课程名称
+                                        const course = allCourses.find(c => c.cno === sct.cno);
+                                        const courseName = course ? course.cname : "未知课程";
+
+                                        const selectedItem = document.createElement('div');
+                                        selectedItem.className = "course-item";
+                                        selectedItem.innerHTML = `
+                                                <div class="course-info">
+                                                    <div><strong>${courseName}</strong> (${sct.cno})</div>
+                                                    <div>学期：${sct.semester || '未知'} | ${scoreHtml}</div>
+                                                </div>
+                                                <div class="course-opt">
+                                                    <button class="btn-drop" onclick="dropCourse('${sct.cno}')">退选</button>
+                                                </div>
+                                            `;
+                                        selectedList.appendChild(selectedItem);
+                                    }).catch(err => {
+                                    console.error("查询课程成绩失败：", err);
+                                });
+                            });
+                            // 强制刷新学分统计
+                            setTimeout(loadTotalCredit, 300);
+                        }).catch(err => {
+                        alert("获取课程列表失败：" + err.message);
+                    });
+                } else {
+                    alert("加载已选课程失败：" + res.msg);
+                    document.getElementById('selectedList').innerHTML = '<div class="empty-tip">加载已选课程失败</div>';
+                }
+            }).catch(err => {
+            alert("加载已选课程失败：" + err.message);
+            document.getElementById('selectedList').innerHTML = '<div class="empty-tip">加载已选课程失败</div>';
+        });
+    }
+
+    // 加载已选学分统计（强制刷新，解决延迟问题）
+    function loadTotalCredit() {
+        fetch('/student/course/totalCredit', fetchConfig)
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP错误码：${res.status}`);
+                return res.json();
+            })
+            .then(res => {
+                const credit = res.code === 200 ? res.data : 0;
+                document.getElementById('totalCredit').innerText = `已选学分：${credit}`;
+            }).catch(err => {
+            document.getElementById('totalCredit').innerText = `已选学分：0`;
+        });
+    }
+
+    // 选课（新增防重复选课+管理员过滤）
+    function selectCourse(cno) {
+        if (!currentUser || currentUser.username === 'admin') {
+            alert("仅学生账号可进行选课操作！");
+            return;
+        }
+        if (confirm("确认选该课程吗？")) {
+            fetch('/student/course/select', {
+                method: 'POST',
+                ...fetchConfig,
+                body: JSON.stringify({
+                    cno: cno,
+                    semester: "2024-2025-1"
+                })
+            }).then(res => {
+                if (!res.ok) throw new Error(`HTTP错误码：${res.status}`);
+                return res.json();
+            })
+                .then(res => {
+                    alert(res.msg || "选课操作失败");
+                    if (res.code === 200) {
+                        // 强制刷新，解决学分延迟
+                        setTimeout(() => {
+                            loadCourseList();
+                            loadSelectedList();
+                            loadTotalCredit();
+                        }, 300);
+                    }
+                }).catch(err => {
+                alert("选课请求失败：" + err.message);
+            });
+        }
+    }
+
+    // 退选
+    function dropCourse(cno) {
+        if (!currentUser || currentUser.username === 'admin') {
+            alert("仅学生账号可进行退选操作！");
+            return;
+        }
+        if (confirm("确认退选该课程吗？")) {
+            fetch(`/student/course/drop?cno=${cno}`, {
+                method: 'POST',
+                ...fetchConfig
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP错误码：${res.status}`);
+                    return res.json();
+                })
+                .then(res => {
+                    alert(res.msg || "退选操作失败");
+                    if (res.code === 200) {
+                        setTimeout(() => {
+                            loadCourseList();
+                            loadSelectedList();
+                            loadTotalCredit();
+                        }, 300);
+                    }
+                }).catch(err => {
+                alert("退选请求失败：" + err.message);
+            });
+        }
+    }
+
+    // 退出登录
+    function logout() {
+        fetch('/logout', {
+            method: 'POST',
+            ...fetchConfig
+        })
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP错误码：${res.status}`);
+                return res.json();
+            })
+            .then(() => {
+                location.href = "/login.html";
+            }).catch(err => {
+            alert("退出登录失败：" + err.message);
+            location.href = "/login.html";
+        });
+    }
+
+    // 显示修改密码弹窗
+    function showPwdModal() {
+        document.getElementById('pwdModal').style.display = 'block';
+        document.getElementById('oldPwd').value = '';
+        document.getElementById('newPwd').value = '';
+        document.getElementById('confirmPwd').value = '';
+    }
+
+    // 隐藏修改密码弹窗
+    function hidePwdModal() {
+        document.getElementById('pwdModal').style.display = 'none';
+    }
+
+    // 提交修改密码
+    function updatePassword() {
+        const oldPwd = document.getElementById('oldPwd').value.trim();
+        const newPwd = document.getElementById('newPwd').value.trim();
+        const confirmPwd = document.getElementById('confirmPwd').value.trim();
+
+        if (!oldPwd || !newPwd || !confirmPwd) {
+            alert("请填写所有密码字段！");
+            return;
+        }
+        if (newPwd !== confirmPwd) {
+            alert("两次输入的新密码不一致！");
+            return;
+        }
+        if (newPwd.length < 6) {
+            alert("新密码长度不能少于6位！");
+            return;
+        }
+
+        fetch('/student/info/updatePwd', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `oldPwd=${encodeURIComponent(oldPwd)}&newPwd=${encodeURIComponent(newPwd)}&confirmPwd=${encodeURIComponent(confirmPwd)}`
+        }).then(res => {
+            if (!res.ok) throw new Error(`HTTP错误码：${res.status}`);
+            return res.json();
+        })
+            .then(res => {
+                alert(res.msg);
+                if (res.code === 200) {
+                    hidePwdModal();
+                    logout();
+                }
+            }).catch(err => {
+            alert("修改密码失败：" + err.message);
+        });
+    }
+
+    // 显示个人信息弹窗
+    function showInfoModal() {
+        if (!currentUser) {
+            alert("请先登录！");
+            return;
+        }
+        Promise.all([
+            fetch('/student/info/getInfo', fetchConfig).then(res => {
+                if (!res.ok) throw new Error(`HTTP错误码：${res.status}`);
+                return res.json();
+            }),
+            fetch(`/student/${currentUser.username}`, fetchConfig).then(res => {
+                if (!res.ok) throw new Error(`HTTP错误码：${res.status}`);
+                return res.json();
+            })
+        ]).then(([userRes, studentRes]) => {
+            if (userRes.code === 200 && studentRes.code === 200) {
+                const user = userRes.data;
+                const student = studentRes.data;
+                document.getElementById('stuNo').value = user.username || '';
+                document.getElementById('stuName').value = user.realName || student.sname || '';
+                document.getElementById('stuGender').value = student.ssex || '男';
+                document.getElementById('stuAge').value = student.sage || '';
+                document.getElementById('stuClass').value = student.className || '';
+                document.getElementById('stuPhone').value = user.phone || '';
+                document.getElementById('infoModal').style.display = 'block';
+            } else {
+                alert(userRes.msg || studentRes.msg || "获取信息失败");
+            }
+        }).catch(err => {
+            alert("获取个人信息失败：" + err.message);
+        });
+    }
+
+    // 隐藏个人信息弹窗
+    function hideInfoModal() {
+        document.getElementById('infoModal').style.display = 'none';
+    }
+
+    // 保存个人信息
+    function saveUserInfo() {
+        const sno = document.getElementById('stuNo').value;
+        const sname = document.getElementById('stuName').value.trim();
+        const ssex = document.getElementById('stuGender').value;
+        const sage = document.getElementById('stuAge').value.trim();
+        const className = document.getElementById('stuClass').value.trim();
+        const phone = document.getElementById('stuPhone').value.trim();
+
+        if (!sname) {
+            alert("真实姓名不能为空！");
+            return;
+        }
+        if (sage && (sage < 16 || sage > 30)) {
+            alert("年龄请输入16-30之间的数字！");
+            return;
+        }
+
+        fetch('/student/info/updateInfo', {
+            method: 'POST',
+            ...fetchConfig,
+            body: JSON.stringify({
+                sno: sno,
+                realName: sname,
+                phone: phone,
+                sname: sname,
+                ssex: ssex,
+                sage: sage ? parseInt(sage) : null,
+                className: className
+            })
+        }).then(res => {
+            if (!res.ok) throw new Error(`HTTP错误码：${res.status}`);
+            return res.json();
+        })
+            .then(res => {
+                alert(res.msg);
+                if (res.code === 200) {
+                    hideInfoModal();
+                    document.getElementById('userName').innerText = sname + "(" + sno + ")";
+                    if (currentUser) currentUser.realName = sname;
+                }
+            }).catch(err => {
+            alert("修改信息失败：" + err.message);
+        });
+    }
+
+    // 【核心修改】显示课程详情弹窗（展示基础信息，无硬编码）
+    function showCourseDetail(cno, cname) {
+        // 清空弹窗并显示加载状态
+        document.getElementById('courseDetailTitle').innerText = `${cname} (${cno}) - 课程信息`;
+        document.getElementById('courseDetailContent').innerText = "正在加载课程信息...";
+        document.getElementById('courseDetailModal').style.display = 'block';
+
+        // 从接口获取课程基础信息
+        fetch('/student/course/list', fetchConfig)
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP错误码：${res.status}`);
+                return res.json();
+            })
+            .then(courseRes => {
+                // 匹配当前课程的信息
+                const course = courseRes.data.find(c => c.cno === cno);
+                // 拼接基础信息作为详情
+                const detail = course ?
+                    `【课程名称】${course.cname}
+【课程编号】${course.cno}
+【学分】${course.ccredit}
+【学时】${course.ctime}
+【开课院系】${course.cdept || '未知'}
+【授课教师】${course.teacher || '未知'}
+【先修课程】${course.cpno || '无'}` :
+                    `暂无${cname}的课程信息`;
+
+                document.getElementById('courseDetailContent').innerText = detail;
+            })
+            .catch(err => {
+                console.error("获取课程信息失败：", err);
+                document.getElementById('courseDetailContent').innerText = "获取课程信息失败，请刷新页面";
+            });
+    }
+
+    // 隐藏课程详情弹窗
+    function hideCourseDetailModal() {
+        document.getElementById('courseDetailModal').style.display = 'none';
+    }
+
+    // 成绩查询弹窗（最终修复版，适配后端空值处理）
+    function showScoreModal() {
+        if (!currentUser) {
+            alert("请先登录！");
+            return;
+        }
+        if (currentUser.username === 'admin') {
+            alert("管理员账号无成绩信息，请切换学生账号！");
+            return;
+        }
+
+        const scoreTableBody = document.getElementById('scoreTableBody');
+        scoreTableBody.innerHTML = '<tr><td colspan="6" class="empty-tip">正在查询成绩...</td></tr>';
+        document.getElementById('avgGpa').innerText = '--';
+
+        // 调用后端/sct/my接口
+        fetch(`/sct/my?sno=${currentUser.username}`, fetchConfig)
+            .then(res => {
+                if (!res.ok) throw new Error(`接口请求失败（HTTP ${res.status}）：${res.statusText}`);
+                return res.json();
+            })
+            .then(res => {
+                scoreTableBody.innerHTML = '';
+                if (res.code !== 200) {
+                    scoreTableBody.innerHTML = `<tr><td colspan="6" class="empty-tip">查询失败：${res.msg || '未知错误'}</td></tr>`;
+                    document.getElementById('scoreModal').style.display = 'block';
+                    return;
+                }
+
+                const scoreList = res.data || [];
+                if (scoreList.length === 0) {
+                    scoreTableBody.innerHTML = '<tr><td colspan="6" class="empty-tip">暂无已选课程成绩</td></tr>';
+                    document.getElementById('scoreModal').style.display = 'block';
+                    return;
+                }
+
+                // 预加载课程信息匹配学分
+                fetch('/student/course/list', fetchConfig)
+                    .then(courseRes => {
+                        if (!courseRes.ok) throw new Error(`获取课程信息失败（HTTP ${courseRes.status}）`);
+                        return courseRes.json();
+                    })
+                    .then(courseData => {
+                        const allCourses = courseData.data || [];
+                        let totalGpa = 0;
+                        let validCourseCount = 0;
+
+                        scoreList.forEach(item => {
+                            const course = allCourses.find(c => c.cno === item.cno);
+                            const ccredit = course ? course.ccredit : 0;
+
+                            // 适配后端返回的"未录入"成绩
+                            let scoreText = item.score;
+                            let gpaText = '0.0';
+                            if (scoreText !== '未录入' && scoreText !== null && !isNaN(scoreText)) {
+                                scoreText = Number(scoreText);
+                                gpaText = scoreText >= 60
+                                    ? Math.min((scoreText - 60) / 10 + 1, 4).toFixed(1)
+                                    : '0.0';
+                                totalGpa += parseFloat(gpaText);
+                                validCourseCount++;
+                            } else {
+                                scoreText = '未录入成绩';
+                            }
+
+                            const scoreRow = document.createElement('tr');
+                            scoreRow.innerHTML = `
+                                <td>${item.cno || '未知'}</td>
+                                <td>${item.courseName || '未配置课程'}</td>
+                                <td>${ccredit}</td>
+                                <td>${item.semester || '未知'}</td>
+                                <td>${scoreText}</td>
+                                <td>${gpaText}</td>
+                            `;
+                            scoreTableBody.appendChild(scoreRow);
+                        });
+
+                        const avgGpa = validCourseCount > 0
+                            ? (totalGpa / validCourseCount).toFixed(2)
+                            : '0.00';
+                        document.getElementById('avgGpa').innerText = avgGpa;
+                        document.getElementById('scoreModal').style.display = 'block';
+                    })
+                    .catch(courseErr => {
+                        console.error("获取课程信息失败：", courseErr);
+                        // 降级渲染
+                        scoreList.forEach(item => {
+                            let scoreText = item.score;
+                            let gpaText = '0.0';
+                            if (scoreText !== '未录入' && scoreText !== null && !isNaN(scoreText)) {
+                                scoreText = Number(scoreText);
+                                gpaText = scoreText >= 60
+                                    ? Math.min((scoreText - 60) / 10 + 1, 4).toFixed(1)
+                                    : '0.0';
+                            } else {
+                                scoreText = '未录入成绩';
+                            }
+
+                            const scoreRow = document.createElement('tr');
+                            scoreRow.innerHTML = `
+                                <td>${item.cno || '未知'}</td>
+                                <td>${item.courseName || '未配置课程'}</td>
+                                <td>0</td>
+                                <td>${item.semester || '未知'}</td>
+                                <td>${scoreText}</td>
+                                <td>${gpaText}</td>
+                            `;
+                            scoreTableBody.appendChild(scoreRow);
+                        });
+                        document.getElementById('avgGpa').innerText = '0.00';
+                        document.getElementById('scoreModal').style.display = 'block';
+                    });
+            })
+            .catch(err => {
+                console.error("成绩查询异常：", err);
+                scoreTableBody.innerHTML = `<tr><td colspan="6" class="empty-tip">获取成绩失败：${err.message}</td></tr>`;
+                document.getElementById('scoreModal').style.display = 'block';
+            });
+    }
+
+    // 隐藏成绩查询弹窗
+    function hideScoreModal() {
+        document.getElementById('scoreModal').style.display = 'none';
+    }
+</script>
+</body>
+</html>

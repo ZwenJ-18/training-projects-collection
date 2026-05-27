@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>删除选课信息</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            padding: 40px 0;
+        }
+        .container-card {
+            width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .title {
+            text-align: center;
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background-color: #0d6efd;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #495057;
+        }
+        .btn-delete {
+            width: 100%;
+            padding: 12px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .btn-delete:hover {
+            background-color: #bb2d3b;
+        }
+    </style>
+</head>
+<body>
+<div class="container-card">
+    <a href="/index.html" class="btn-back">返回首页</a>
+    <h2 class="title">删除选课信息</h2>
+
+    <div class="form-group">
+        <label>选择学生学号</label>
+        <select class="form-select" id="snoSelect" required>
+            <option value="">请选择学号...</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>选择课程号</label>
+        <select class="form-select" id="cnoSelect" required>
+            <option value="">请选择课程号...</option>
+        </select>
+    </div>
+
+    <form id="deleteSctForm">
+        <div class="form-group">
+            <label>学号（9位）</label>
+            <input type="text" class="form-control" id="sno" required placeholder="自动填充" readonly>
+        </div>
+        <div class="form-group">
+            <label>课程号</label>
+            <input type="text" class="form-control" id="cno" required placeholder="自动填充" readonly>
+        </div>
+        <button type="submit" class="btn-delete">确认删除选课</button>
+    </form>
+</div>
+
+<script>
+    // 加载学生和课程列表
+    function loadSelectOptions() {
+        // 加载学生
+        fetch('http://localhost:8080/student/list')
+            .then(res => res.json())
+            .then(res => {
+                const snoSelect = document.getElementById('snoSelect');
+                if (res.code === 200 && res.data.length > 0) {
+                    res.data.forEach(student => {
+                        const opt = document.createElement('option');
+                        opt.value = student.sno;
+                        opt.textContent = `${student.sno} - ${student.sname}`;
+                        snoSelect.appendChild(opt);
+                    });
+                }
+            });
+
+        // 加载课程
+        fetch('http://localhost:8080/course/list')
+            .then(res => res.json())
+            .then(res => {
+                const cnoSelect = document.getElementById('cnoSelect');
+                if (res.code === 200 && res.data.length > 0) {
+                    res.data.forEach(course => {
+                        const opt = document.createElement('option');
+                        opt.value = course.cno;
+                        opt.textContent = `${course.cno} - ${course.cname}`;
+                        cnoSelect.appendChild(opt);
+                    });
+                }
+            });
+    }
+
+    window.onload = function() {
+        loadSelectOptions();
+
+        // 选择学生后填充学号
+        document.getElementById('snoSelect').addEventListener('change', function() {
+            document.getElementById('sno').value = this.value;
+        });
+
+        // 选择课程后填充课程号
+        document.getElementById('cnoSelect').addEventListener('change', function() {
+            document.getElementById('cno').value = this.value;
+        });
+    };
+
+    // 删除选课
+    document.getElementById('deleteSctForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const sno = document.getElementById('sno').value.trim();
+        const cno = document.getElementById('cno').value.trim();
+
+        if (!confirm(`确定要删除【学号：${sno}】的【课程号：${cno}】选课记录吗？`)) {
+            return;
+        }
+
+        fetch(`http://localhost:8080/sct/delete/${sno}/${cno}`, {
+            method: 'DELETE'
+        })
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200) {
+                    alert('删除选课成功！');
+                    this.reset();
+                    document.getElementById('snoSelect').value = '';
+                    document.getElementById('cnoSelect').value = '';
+                } else {
+                    alert('删除失败：' + res.msg);
+                }
+            })
+            .catch(err => {
+                alert('网络错误：' + err.message);
+            });
+    });
+</script>
+</body>
+</html>

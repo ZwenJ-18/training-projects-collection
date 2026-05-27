@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>添加课程信息</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .container { max-width: 600px; margin-top: 50px; }
+        .btn-back { margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .btn-submit { background-color: green; color: white; border: none; padding: 8px 20px; border-radius: 4px; margin-top: 10px; }
+        .error-tip { color: red; font-size: 12px; margin-top: 5px; display: none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="/index.html" class="btn btn-primary btn-back">返回首页</a>
+    <h2 class="text-center mb-4">添加课程信息</h2>
+
+    <form id="addCourseForm">
+        <div class="form-group">
+            <label>课程号（5位，如C0001）</label>
+            <input type="text" id="cno" placeholder="请输入5位课程号（C+4位数字）" required>
+        </div>
+        <div class="form-group">
+            <label>课程名</label>
+            <input type="text" id="cname" placeholder="请输入课程名" required>
+        </div>
+        <!-- 先修课下拉框 -->
+        <div class="form-group">
+            <label>先修课号（选填）</label>
+            <select id="cpno">
+                <option value="">无先修课</option>
+                <!-- 选项由JS加载 -->
+            </select>
+        </div>
+        <div class="form-group">
+            <label>学分（正整数）</label>
+            <input type="number" id="ccredit" min="1" placeholder="请输入学分数" required>
+        </div>
+        <div class="form-group">
+            <label>学时（≥16）</label>
+            <input type="number" id="ctime" min="16" placeholder="请输入学时数" required>
+        </div>
+        <div class="form-group">
+            <label>选择开课院系</label>
+            <select class="form-select" id="deptSelect" required>
+                <option value="">请选择开课院系...</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>开课院系</label>
+            <input type="text" id="cdept" placeholder="请选择/输入院系" required readonly>
+        </div>
+        <div class="form-group">
+            <label>选择授课教师</label>
+            <select class="form-select" id="teacherSelect" required>
+                <option value="">请选择授课教师...</option>
+            </select>
+            <div id="teacherError" class="error-tip">该老师课程已满，不能选他</div>
+        </div>
+        <div class="form-group">
+            <label>授课教师</label>
+            <input type="text" id="teacher" placeholder="请选择/输入教师" required readonly>
+        </div>
+        <button type="submit" class="btn-submit">提交</button>
+    </form>
+</div>
+
+<script>
+    // 存储教师主讲课程数量映射：教工号→课程数
+    let teacherCourseCountMap = new Map();
+
+    // 加载先修课列表
+    function loadPrerequisiteCourses() {
+        fetch('http://localhost:8080/course/list')
+            .then(res => res.json())
+            .then(res => {
+                const cpnoSelect = document.getElementById('cpno');
+                cpnoSelect.innerHTML = '<option value="">无先修课</option>';
+                if (res.code === 200 && res.data.length > 0) {
+                    res.data.forEach(course => {
+                        const opt = document.createElement('option');
+                        opt.value = course.cno;
+                        opt.textContent = `${course.cno} - ${course.cname}`;
+                        cpnoSelect.appendChild(opt);
+                    });
+                }
+            })
+            .catch(err => console.error('加载先修课失败：', err));
+    }
+
+    // 加载院系列表
+    function loadDeptList() {
+        fetch('http://localhost:8080/department/list')
+            .then(res => res.json())
+            .then(res => {
+                const deptSelect = document.getElementById('deptSelect');
+                deptSelect.innerHTML = '<option value="">请选择开课院系...</option>';
+                if (res.code === 200 && res.data.length > 0) {
+                    res.data.forEach(dept => {
+                        const opt = document.createElement('option');
+                        opt.value = dept.dname;
+                        opt.textContent = `${dept.dno} - ${dept.dname}`;
+                        deptSelect.appendChild(opt);
+                    });
+                }
+            })
+            .catch(err => console.error('加载院系失败：', err));
+    }
+
+    // 加载教师列表 + 统计教师主讲课程数量
+    function loadTeacherList() {
+        fetch('http://localhost:8080/teacher/list')
+            .then(res => res.json())
+            .then(res => {
+                const teacherSelect = document.getElementById('teacherSelect');
+                teacherSelect.innerHTML = '<option value="">请选择授课教师...</option>';
+                teacherCourseCountMap.clear(); // 清空原有数据
+
+                if (res.code === 200 && res.data.length > 0) {
+                    res.data.forEach(teacher => {
+                        // 统计该教师主讲课程数量（cno1/cno2/cno3非空则计数）
+                        let courseCount = 0;
+                        if (teacher.cno1) courseCount++;
+                        if (teacher.cno2) courseCount++;
+                        if (teacher.cno3) courseCount++;
+                        teacherCourseCountMap.set(teacher.tno, courseCount);
+
+                        // 创建下拉选项（标记已满的教师）
+                        const opt = document.createElement('option');
+                        opt.value = teacher.tno; // 存储教工号（方便校验）
+                        opt.dataset.name = teacher.tname; // 存储教师姓名
+                        // 课程已满的教师标注提示
+                        const text = courseCount >= 3
+                            ? `${teacher.tno} - ${teacher.tname}（课程已满）`
+                            : `${teacher.tno} - ${teacher.tname}`;
+                        opt.textContent = text;
+                        // 课程已满的教师禁用选项
+                        if (courseCount >= 3) opt.disabled = true;
+
+                        teacherSelect.appendChild(opt);
+                    });
+                }
+            })
+            .catch(err => console.error('加载教师失败：', err));
+    }
+
+    window.onload = function() {
+        loadPrerequisiteCourses();
+        loadDeptList();
+        loadTeacherList();
+
+        // 院系选择事件
+        document.getElementById('deptSelect').addEventListener('change', function() {
+            document.getElementById('cdept').value = this.value;
+        });
+
+        // 教师选择事件 + 校验课程数量
+        document.getElementById('teacherSelect').addEventListener('change', function() {
+            const teacherError = document.getElementById('teacherError');
+            const teacherInput = document.getElementById('teacher');
+            const selectedTno = this.value;
+
+            if (selectedTno) {
+                // 获取选中教师的姓名
+                const selectedOption = this.options[this.selectedIndex];
+                const teacherName = selectedOption.dataset.name;
+                teacherInput.value = teacherName;
+
+                // 校验课程数量
+                const courseCount = teacherCourseCountMap.get(selectedTno) || 0;
+                if (courseCount >= 3) {
+                    teacherError.style.display = 'block';
+                } else {
+                    teacherError.style.display = 'none';
+                }
+            } else {
+                teacherInput.value = '';
+                teacherError.style.display = 'none';
+            }
+        });
+    };
+
+    // 提交逻辑（增加教师课程数量校验）
+    document.getElementById('addCourseForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const cno = document.getElementById('cno').value.trim();
+        // 严格校验课程号格式
+        if (!/^C\d{4}$/.test(cno)) {
+            alert('课程号格式错误！必须是“C+4位数字”（如C0001）');
+            return;
+        }
+
+        // 校验教师课程数量
+        const teacherSelect = document.getElementById('teacherSelect');
+        const selectedTno = teacherSelect.value;
+        if (!selectedTno) {
+            alert('请选择授课教师！');
+            return;
+        }
+        const courseCount = teacherCourseCountMap.get(selectedTno) || 0;
+        if (courseCount >= 3) {
+            alert('提交失败：该教师已主讲3门课程，不能再分配新课程！');
+            return;
+        }
+
+        // 获取教师姓名
+        const selectedOption = teacherSelect.options[teacherSelect.selectedIndex];
+        const teacherName = selectedOption.dataset.name;
+
+        const course = {
+            cno: cno,
+            cname: document.getElementById('cname').value.trim(),
+            cpno: document.getElementById('cpno').value.trim() || null,
+            ccredit: parseInt(document.getElementById('ccredit').value.trim()),
+            ctime: parseInt(document.getElementById('ctime').value.trim()),
+            cdept: document.getElementById('cdept').value.trim(),
+            teacher: teacherName // 提交教师姓名
+        };
+
+        fetch('http://localhost:8080/course/add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(course)
+        })
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200) {
+                    alert('添加课程成功！');
+                    this.reset();
+                    document.getElementById('deptSelect').value = '';
+                    document.getElementById('teacherSelect').value = '';
+                    document.getElementById('cdept').value = '';
+                    document.getElementById('teacher').value = '';
+                    // 刷新列表（更新教师课程数量）
+                    loadPrerequisiteCourses();
+                    loadTeacherList();
+                } else {
+                    if (res.msg.includes('Duplicate entry')) {
+                        alert('添加失败：该课程号已存在，请更换课程号！');
+                    } else {
+                        alert('添加失败：' + res.msg);
+                    }
+                }
+            })
+            .catch(err => {
+                alert('网络错误：' + err.message);
+            });
+    });
+</script>
+</body>
+</html>

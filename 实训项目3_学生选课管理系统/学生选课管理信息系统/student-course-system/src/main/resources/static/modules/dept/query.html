@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>查询院系信息</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            padding: 40px 0;
+        }
+        .container {
+            width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .title {
+            text-align: center;
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background-color: #0d6efd;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #495057;
+        }
+        .btn-query {
+            width: 100%;
+            padding: 12px;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .btn-query:hover {
+            background-color: #0b5ed7;
+        }
+        .result-box {
+            margin-top: 25px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            display: none;
+        }
+        .result-item {
+            margin-bottom: 12px;
+        }
+        .result-label {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="/index.html" class="btn-back">返回首页</a>
+    <h2 class="title">查询院系信息</h2>
+
+    <form id="queryDeptForm">
+        <div class="form-group">
+            <label>选择院系编号（自动加载）</label>
+            <select id="deptSelect" class="form-select" required>
+                <option value="">请选择院系号...</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>院系编号（必填，如001）</label>
+            <input type="text" id="dno" placeholder="请输入3位院系编号" required>
+        </div>
+        <button type="submit" class="btn-query">查询</button>
+    </form>
+
+    <!-- 查询结果展示区 -->
+    <div class="result-box" id="resultBox">
+        <div class="result-item">
+            <span class="result-label">院系编号：</span>
+            <span id="resDno"></span>
+        </div>
+        <div class="result-item">
+            <span class="result-label">院系名称：</span>
+            <span id="resDname"></span>
+        </div>
+        <div class="result-item">
+            <span class="result-label">院系负责人：</span>
+            <span id="resDmanager"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 页面加载时加载所有院系到下拉框
+    function loadDeptList() {
+        fetch('http://localhost:8080/department/list')
+            .then(res => res.json())
+            .then(res => {
+                const deptSelect = document.getElementById('deptSelect');
+                deptSelect.innerHTML = '<option value="">请选择院系号...</option>';
+                if (res.code === 200 && res.data.length > 0) {
+                    res.data.forEach(dept => {
+                        const opt = document.createElement('option');
+                        opt.value = dept.dno;
+                        opt.textContent = `${dept.dno} - ${dept.dname}`;
+                        deptSelect.appendChild(opt);
+                    });
+                }
+            })
+            .catch(err => console.error('加载院系列表失败：', err));
+    }
+
+    // 下拉框选择后自动填充院系编号输入框
+    document.getElementById('deptSelect').addEventListener('change', function() {
+        document.getElementById('dno').value = this.value;
+    });
+
+    // 提交查询逻辑
+    document.getElementById('queryDeptForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const dno = document.getElementById('dno').value.trim();
+
+        fetch(`http://localhost:8080/department/query/${dno}`)
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200 && res.data) {
+                    // 显示结果
+                    document.getElementById('resultBox').style.display = 'block';
+                    document.getElementById('resDno').textContent = res.data.dno;
+                    document.getElementById('resDname').textContent = res.data.dname;
+                    document.getElementById('resDmanager').textContent = res.data.dmanager;
+                } else {
+                    alert(res.msg);
+                    document.getElementById('resultBox').style.display = 'none';
+                }
+            })
+            .catch(err => {
+                alert('网络错误：' + err.message);
+            });
+    });
+
+    // 页面加载初始化
+    window.onload = loadDeptList;
+</script>
+</body>
+</html>

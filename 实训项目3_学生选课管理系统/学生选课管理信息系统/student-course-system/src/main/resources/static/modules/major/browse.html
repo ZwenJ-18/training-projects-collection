@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>浏览专业信息</title>
+    <style>
+        .container {
+            width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-btn {
+            background: #0d6efd;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .add-btn {
+            background: #198754;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            float: right;
+        }
+        .page-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            clear: both;
+        }
+        .browse-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .browse-table th, .browse-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #eee;
+        }
+        .browse-table th {
+            background: #0d6efd;
+            color: #fff;
+        }
+        .browse-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <button class="back-btn" onclick="location.href='/index.html'">返回首页</button>
+    <button class="add-btn" onclick="location.href='/modules/major/add.html'">添加专业</button>
+    <div class="page-title">专业信息列表</div>
+
+    <table class="browse-table" id="majorTable">
+        <thead>
+        <tr>
+            <th>专业名称</th>
+            <th>所属院系</th>
+        </tr>
+        </thead>
+        <tbody id="tableBody">
+        <tr><td colspan="2">加载中...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // 加载所有专业信息（与学生浏览页面加载逻辑一致）
+    function loadMajorList() {
+        fetch('/department/major/all')
+            .then(res => res.json())
+            .then(res => {
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = '';
+
+                if (res.code === 200 && res.data.length > 0) {
+                    res.data.forEach(major => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td>${major.majorName}</td><td>${major.deptName}</td>`;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="2">暂无专业信息</td></tr>';
+                }
+            })
+            .catch(() => {
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = '<tr><td colspan="2">加载专业信息失败</td></tr>';
+            });
+    }
+
+    window.onload = loadMajorList;
+</script>
+</body>
+</html>

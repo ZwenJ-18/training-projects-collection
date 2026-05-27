@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>添加院系信息</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            padding: 40px 0;
+        }
+        .container-card {
+            width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .title {
+            text-align: center;
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background-color: #0d6efd;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #495057;
+        }
+        .btn-submit {
+            width: auto;
+            padding: 10px 20px;
+            background-color: green;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="container-card">
+    <a href="/index.html" class="btn-back">返回首页</a>
+    <h2 class="title">添加院系信息</h2>
+
+    <form id="addDeptForm">
+        <div class="form-group">
+            <label>院系编号 (3位数字,如001)</label>
+            <input type="text" id="dno" placeholder="请输入3位院系编号" required>
+        </div>
+        <div class="form-group">
+            <label>院系名称</label>
+            <input type="text" id="dname" placeholder="请输入院系名称" required>
+        </div>
+        <div class="form-group">
+            <label>院系负责人（教工号，如T2024001）</label>
+            <!-- 替换为下拉框 -->
+            <select id="dmanager" required>
+                <option value="">请选择负责人...</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-submit">提交</button>
+    </form>
+</div>
+
+<script>
+    // 加载教师列表到下拉框
+    function loadTeachers() {
+        fetch('http://localhost:8080/teacher/list')
+            .then(res => res.json())
+            .then(res => {
+                const select = document.getElementById('dmanager');
+                select.innerHTML = '<option value="">请选择负责人...</option>';
+                if (res.code === 200 && res.data.length > 0) {
+                    res.data.forEach(teacher => {
+                        const opt = document.createElement('option');
+                        opt.value = teacher.tno;
+                        opt.textContent = `${teacher.tno} - ${teacher.tname}`;
+                        select.appendChild(opt);
+                    });
+                } else {
+                    const opt = document.createElement('option');
+                    opt.value = "";
+                    opt.textContent = "暂无教师数据";
+                    select.appendChild(opt);
+                }
+            })
+            .catch(err => {
+                const select = document.getElementById('dmanager');
+                select.innerHTML = '<option value="">加载教师失败</option>';
+            });
+    }
+
+    // 页面加载时执行
+    window.onload = loadTeachers;
+
+    // 提交表单
+    document.getElementById('addDeptForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const dno = document.getElementById('dno').value.trim();
+        const dname = document.getElementById('dname').value.trim();
+        const dmanager = document.getElementById('dmanager').value.trim();
+
+        if (!dmanager) {
+            alert('请选择院系负责人！');
+            return;
+        }
+
+        // 校验编号是否存在
+        fetch(`http://localhost:8080/department/check/${dno}`)
+            .then(res => res.json())
+            .then(checkRes => {
+                if (checkRes.code === 200 && checkRes.data) {
+                    alert(`院系编号【${dno}】已存在！`);
+                    return;
+                }
+                // 提交添加
+                fetch('http://localhost:8080/department/add', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({dno, dname, dmanager})
+                })
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.code === 200) {
+                            alert('添加成功！');
+                            this.reset();
+                            loadTeachers();
+                        } else {
+                            alert(res.msg);
+                        }
+                    });
+            });
+    });
+</script>
+</body>
+</html>

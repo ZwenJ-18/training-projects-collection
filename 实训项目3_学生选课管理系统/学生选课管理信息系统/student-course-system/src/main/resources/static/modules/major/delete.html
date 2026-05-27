@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>删除专业信息</title>
+    <style>
+        .container {
+            width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-btn {
+            background: #0d6efd;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .page-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .form-item {
+            margin: 15px 0;
+        }
+        .form-item label {
+            display: inline-block;
+            width: 150px;
+            text-align: right;
+            margin-right: 10px;
+        }
+        .form-item select, .form-item input {
+            padding: 6px;
+            width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .delete-btn {
+            width: 100%;
+            padding: 10px;
+            background: #dc3545; /* 与学生删除页面一致的红色按钮 */
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <button class="back-btn" onclick="location.href='/index.html'">返回首页</button>
+    <div class="page-title">删除专业信息</div>
+
+    <div class="form-item">
+        <label>选择所属院系</label>
+        <select id="deptName" required>
+            <option value="">请选择院系...</option>
+        </select>
+    </div>
+    <div class="form-item">
+        <label>选择专业名称（必填）</label>
+        <select id="majorName" required>
+            <option value="">请先选择院系...</option>
+        </select>
+    </div>
+
+    <button class="delete-btn" onclick="deleteMajor()">删除</button>
+</div>
+
+<script>
+    // 加载院系列表（与学生删除页面下拉框逻辑一致）
+    function loadDept() {
+        fetch('/department/list')
+            .then(res => res.json())
+            .then(res => {
+                const deptSelect = document.getElementById('deptName');
+                res.data.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept.dname;
+                    option.textContent = dept.dname;
+                    deptSelect.appendChild(option);
+                });
+            });
+    }
+
+    // 院系联动专业（与学生删除页面“选择学号”逻辑一致）
+    document.getElementById('deptName').addEventListener('change', function() {
+        const deptName = this.value;
+        const majorSelect = document.getElementById('majorName');
+        majorSelect.innerHTML = '<option value="">加载中...</option>';
+
+        if (!deptName) {
+            majorSelect.innerHTML = '<option value="">请先选择院系...</option>';
+            return;
+        }
+
+        fetch(`/department/major/list?deptName=${encodeURIComponent(deptName)}`)
+            .then(res => res.json())
+            .then(res => {
+                majorSelect.innerHTML = '<option value="">请选择专业...</option>';
+                res.data.forEach(major => {
+                    const option = document.createElement('option');
+                    option.value = major.majorName;
+                    option.textContent = `${major.majorName} - ${major.deptName}`; // 与学生页面“学号-姓名”格式一致
+                    majorSelect.appendChild(option);
+                });
+            });
+    });
+
+    // 删除专业（与学生删除逻辑一致，增加二次确认）
+    function deleteMajor() {
+        const deptName = document.getElementById('deptName').value;
+        const majorName = document.getElementById('majorName').value;
+
+        if (!deptName || !majorName) {
+            alert("请选择院系和专业！");
+            return;
+        }
+
+        // 二次确认（与学生删除页面一致）
+        if (!confirm(`确定要删除专业【${majorName}】吗？删除后不可恢复！`)) {
+            return;
+        }
+
+        fetch(`/department/major/delete?majorName=${encodeURIComponent(majorName)}`, {
+            method: 'DELETE'
+        }).then(res => res.json())
+            .then(res => {
+                alert(res.msg);
+                if (res.code === 200) {
+                    location.reload(); // 成功后刷新页面
+                }
+            });
+    }
+
+    window.onload = loadDept;
+</script>
+</body>
+</html>

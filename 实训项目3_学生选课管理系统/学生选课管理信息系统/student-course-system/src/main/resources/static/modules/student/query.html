@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>查询学生信息</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            padding: 40px 0;
+        }
+        .container-card {
+            width: 700px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .title {
+            text-align: center;
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background-color: #0d6efd;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #495057;
+        }
+        .btn-query {
+            width: 100%;
+            padding: 12px;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .btn-query:hover {
+            background-color: #0b5ed7;
+        }
+        .result-box {
+            margin-top: 25px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            display: none;
+        }
+        .result-item {
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        .result-label {
+            font-weight: 500;
+            color: #2c3e50;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+<div class="container-card">
+    <a href="/index.html" class="btn-back">返回首页</a>
+    <h2 class="title">查询学生信息</h2>
+
+    <!-- 学生学号下拉框（自动加载） -->
+    <div class="form-group">
+        <label>选择学生学号（自动加载）</label>
+        <select class="form-select" id="snoSelect">
+            <option value="">请选择学号...</option>
+        </select>
+    </div>
+
+    <form id="queryStudentForm">
+        <div class="form-group">
+            <label>学号（必填，12位）</label> <!-- 改为12位 -->
+            <input type="text" class="form-control" id="sno" required placeholder="请输入12位学号">
+        </div>
+        <button type="submit" class="btn-query">查询</button>
+    </form>
+
+    <!-- 结果展示区（新增专业、班级、联系电话字段） -->
+    <div class="result-box" id="resultArea">
+        <div class="result-item">
+            <span class="result-label">学号：</span>
+            <span id="resSno"></span>
+        </div>
+        <div class="result-item">
+            <span class="result-label">姓名：</span>
+            <span id="resSname"></span>
+        </div>
+        <div class="result-item">
+            <span class="result-label">性别：</span>
+            <span id="resSsex"></span>
+        </div>
+        <div class="result-item">
+            <span class="result-label">年龄：</span>
+            <span id="resSage"></span>
+        </div>
+        <div class="result-item">
+            <span class="result-label">院系：</span>
+            <span id="resSdept"></span>
+        </div>
+        <div class="result-item">
+            <span class="result-label">专业：</span>
+            <span id="resMajor"></span>
+        </div>
+        <div class="result-item">
+            <span class="result-label">班级：</span>
+            <span id="resClassName"></span>
+        </div>
+        <div class="result-item">
+            <span class="result-label">联系电话：</span>
+            <span id="resPhone"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 加载有效学号
+    window.onload = function() {
+        fetch('http://localhost:8080/student/list', {
+            method: 'GET'
+        })
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200 && res.data.length > 0) {
+                    const snoSelect = document.getElementById('snoSelect');
+                    res.data.forEach(student => {
+                        const option = document.createElement('option');
+                        option.value = student.sno;
+                        option.textContent = `${student.sno} - ${student.sname}`;
+                        snoSelect.appendChild(option);
+                    });
+                }
+            })
+            .catch(err => console.error('加载学生列表失败：', err));
+
+        // 下拉框选学号后自动填充
+        document.getElementById('snoSelect').addEventListener('change', function() {
+            document.getElementById('sno').value = this.value;
+        });
+    };
+
+    // 查询逻辑（核心修改：同时查student和user表，联系电话从user表读取）
+    document.getElementById('queryStudentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const sno = document.getElementById('sno').value.trim();
+
+        // 12位学号校验
+        if (!sno || sno.length !== 12) {
+            alert("请输入12位有效学号！");
+            return;
+        }
+
+        document.getElementById('resultArea').style.display = 'block';
+
+        // 清空之前的结果
+        document.getElementById('resSno').textContent = '';
+        document.getElementById('resSname').textContent = '';
+        document.getElementById('resSsex').textContent = '';
+        document.getElementById('resSage').textContent = '';
+        document.getElementById('resSdept').textContent = '';
+        document.getElementById('resMajor').textContent = '';
+        document.getElementById('resClassName').textContent = '';
+        document.getElementById('resPhone').textContent = '';
+
+        // 同时请求student表和user表数据
+        Promise.all([
+            fetch(`http://localhost:8080/student/${sno}`, { method: 'GET' }),
+            fetch(`http://localhost:8080/api/user/info?username=${sno}`, { method: 'GET' })
+        ])
+            .then(([studentRes, userRes]) => Promise.all([studentRes.json(), userRes.json()]))
+            .then(([studentData, userData]) => {
+                // 处理student表数据
+                if (studentData.code === 200 && studentData.data) {
+                    document.getElementById('resSno').textContent = studentData.data.sno || "无";
+                    document.getElementById('resSname').textContent = studentData.data.sname || "无";
+                    document.getElementById('resSsex').textContent = studentData.data.ssex || "无";
+                    document.getElementById('resSage').textContent = studentData.data.sage || "无";
+                    document.getElementById('resSdept').textContent = studentData.data.sdept || "无";
+                    document.getElementById('resMajor').textContent = studentData.data.major || "无";
+                    document.getElementById('resClassName').textContent = studentData.data.className || "无";
+                } else {
+                    alert(studentData.msg || '未查询到该学生的基础信息！');
+                }
+
+                // 处理user表数据（联系电话）
+                if (userData.code === 200 && userData.data) {
+                    document.getElementById('resPhone').textContent = userData.data.phone || "无";
+                } else {
+                    document.getElementById('resPhone').textContent = "无";
+                }
+            })
+            .catch(err => {
+                alert('网络错误：' + err.message);
+                document.getElementById('resultArea').style.display = 'none';
+            });
+    });
+</script>
+</body>
+</html>

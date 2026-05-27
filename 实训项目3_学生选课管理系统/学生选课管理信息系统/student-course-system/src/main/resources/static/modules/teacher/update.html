@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>修改教师信息</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            padding: 40px 0;
+        }
+        .container-card {
+            width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .title {
+            text-align: center;
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background-color: #0d6efd;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #495057;
+        }
+        .tno-text {
+            width: 100%;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #495057;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background-color: #f39c12;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .btn-submit:hover {
+            background-color: #e67e22;
+        }
+    </style>
+</head>
+<body>
+<div class="container-card">
+    <a href="/index.html" class="btn-back">返回首页</a>
+    <h2 class="title">修改教师信息</h2>
+
+    <div class="form-group">
+        <label for="tnoSelect">选择要修改的教师</label>
+        <select class="form-select" id="tnoSelect" required>
+            <option value="">请选择教工号...</option>
+        </select>
+    </div>
+
+    <form id="updateTeacherForm">
+        <!-- 教工号改为只读文本 -->
+        <div class="form-group">
+            <label>教工号（不可修改）</label>
+            <div id="tno" class="tno-text">请先选择教师</div>
+        </div>
+        <div class="form-group">
+            <label for="tname">姓名</label>
+            <input type="text" id="tname" placeholder="请输入姓名" required>
+        </div>
+        <div class="form-group">
+            <label for="tsex">性别</label>
+            <select id="tsex" required>
+                <option value="男">男</option>
+                <option value="女">女</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="tage">年龄</label>
+            <input type="number" id="tage" min="22" max="65" placeholder="请输入年龄" required>
+        </div>
+        <!-- 学历改为下拉框 -->
+        <div class="form-group">
+            <label for="teb">学历</label>
+            <select id="teb" required>
+                <option value="">请选择学历...</option>
+                <option value="本科">本科</option>
+                <option value="硕士">硕士</option>
+                <option value="博士">博士</option>
+            </select>
+        </div>
+        <!-- 职称改为下拉框 -->
+        <div class="form-group">
+            <label for="tpt">职称</label>
+            <select id="tpt" required>
+                <option value="">请选择职称...</option>
+                <option value="讲师">讲师</option>
+                <option value="副教授">副教授</option>
+                <option value="教授">教授</option>
+            </select>
+        </div>
+        <!-- 主讲课程1（必填） -->
+        <div class="form-group">
+            <label for="cno1">主讲课程1编号</label>
+            <select id="cno1" required>
+                <option value="">请选择课程号...</option>
+            </select>
+        </div>
+        <!-- 新增：主讲课程2（选填） -->
+        <div class="form-group">
+            <label for="cno2">主讲课程2编号（选填）</label>
+            <select id="cno2">
+                <option value="">请选择课程号...</option>
+            </select>
+        </div>
+        <!-- 新增：主讲课程3（选填） -->
+        <div class="form-group">
+            <label for="cno3">主讲课程3编号（选填）</label>
+            <select id="cno3">
+                <option value="">请选择课程号...</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-submit">提交修改</button>
+    </form>
+</div>
+
+<script>
+    let allTeachers = [];
+    let allCourses = []; // 存储后端课程列表
+
+    // 加载教师列表
+    function loadTeacherList() {
+        fetch('http://localhost:8080/teacher/list')
+            .then(res => res.json())
+            .then(res => {
+                const tnoSelect = document.getElementById('tnoSelect');
+                tnoSelect.innerHTML = '<option value="">请选择教工号...</option>';
+                if (res.code === 200 && res.data.length > 0) {
+                    allTeachers = res.data;
+                    res.data.forEach(teacher => {
+                        const opt = document.createElement('option');
+                        opt.value = teacher.tno;
+                        opt.textContent = `${teacher.tno} - ${teacher.tname}`;
+                        tnoSelect.appendChild(opt);
+                    });
+                }
+            });
+    }
+
+    // 加载后端课程列表（适配3个课程下拉框）
+    function loadCourseList() {
+        fetch('http://localhost:8080/course/list')
+            .then(res => res.json())
+            .then(res => {
+                // 所有课程下拉框
+                const courseSelects = [
+                    document.getElementById('cno1'),
+                    document.getElementById('cno2'),
+                    document.getElementById('cno3')
+                ];
+                // 给每个下拉框添加课程选项
+                courseSelects.forEach(select => {
+                    select.innerHTML = '<option value="">请选择课程号...</option>';
+                    if (res.code === 200 && res.data.length > 0) {
+                        allCourses = res.data;
+                        res.data.forEach(course => {
+                            const opt = document.createElement('option');
+                            opt.value = course.cno;
+                            opt.textContent = `${course.cno} - ${course.cname}`;
+                            select.appendChild(opt);
+                        });
+                    }
+                });
+            });
+    }
+
+    // 选择教师后自动填充所有数据（含cno2/cno3）
+    document.getElementById('tnoSelect').addEventListener('change', function() {
+        const tno = this.value;
+        if (!tno) {
+            document.getElementById('tno').textContent = '请先选择教师';
+            document.getElementById('tname').value = '';
+            document.getElementById('tsex').value = '男';
+            document.getElementById('tage').value = '';
+            document.getElementById('teb').value = '';
+            document.getElementById('tpt').value = '';
+            document.getElementById('cno1').value = '';
+            document.getElementById('cno2').value = '';
+            document.getElementById('cno3').value = '';
+            return;
+        }
+
+        const teacher = allTeachers.find(item => item.tno === tno);
+        if (teacher) {
+            document.getElementById('tno').textContent = teacher.tno;
+            document.getElementById('tname').value = teacher.tname;
+            document.getElementById('tsex').value = teacher.tsex;
+            document.getElementById('tage').value = teacher.tage;
+            document.getElementById('teb').value = teacher.teb;
+            document.getElementById('tpt').value = teacher.tpt;
+            document.getElementById('cno1').value = teacher.cno1 || '';
+            document.getElementById('cno2').value = teacher.cno2 || ''; // 填充课程2
+            document.getElementById('cno3').value = teacher.cno3 || ''; // 填充课程3
+        }
+    });
+
+    // 提交修改（传递cno1/cno2/cno3）
+    document.getElementById('updateTeacherForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const tno = document.getElementById('tno').textContent.trim();
+        if (tno === '请先选择教师') {
+            alert('请先选择要修改的教师！');
+            return;
+        }
+
+        const teacherData = {
+            tno: tno,
+            tname: document.getElementById('tname').value.trim(),
+            tsex: document.getElementById('tsex').value,
+            tage: parseInt(document.getElementById('tage').value.trim()),
+            teb: document.getElementById('teb').value.trim(),
+            tpt: document.getElementById('tpt').value.trim(),
+            cno1: document.getElementById('cno1').value.trim(), // 课程1
+            cno2: document.getElementById('cno2').value.trim() || null, // 课程2（兼容空值）
+            cno3: document.getElementById('cno3').value.trim() || null  // 课程3（兼容空值）
+        };
+
+        fetch('http://localhost:8080/teacher/update', {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(teacherData)
+        })
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200) {
+                    alert('修改教师信息成功！3个课程已同步更新');
+                    loadTeacherList();
+                    // 重置表单
+                    document.getElementById('tnoSelect').value = '';
+                    document.getElementById('tno').textContent = '请先选择教师';
+                    document.getElementById('tname').value = '';
+                    document.getElementById('tsex').value = '男';
+                    document.getElementById('tage').value = '';
+                    document.getElementById('teb').value = '';
+                    document.getElementById('tpt').value = '';
+                    document.getElementById('cno1').value = '';
+                    document.getElementById('cno2').value = '';
+                    document.getElementById('cno3').value = '';
+                } else {
+                    alert('修改失败：' + res.msg);
+                }
+            })
+            .catch(err => {
+                alert('网络错误：' + err.message);
+            });
+    });
+
+    // 页面加载时初始化
+    window.onload = function() {
+        loadTeacherList();
+        loadCourseList(); // 加载课程列表
+    };
+</script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>添加学生信息</title>
+    <style>
+        .container {
+            width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .back-btn {
+            background: #0d6efd;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .page-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .form-item {
+            margin: 15px 0;
+        }
+        .form-item label {
+            display: inline-block;
+            width: 150px;
+            text-align: right;
+            margin-right: 10px;
+        }
+        .form-item select, .form-item input {
+            padding: 6px;
+            width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 10px;
+            background: #198754;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <button class="back-btn" onclick="location.href='/index.html'">返回首页</button>
+    <div class="page-title">添加学生信息</div>
+
+    <div class="form-item">
+        <label>学号（12位）</label>
+        <input type="text" id="sno" placeholder="请输入12位学号" required>
+    </div>
+    <div class="form-item">
+        <label>姓名</label>
+        <input type="text" id="sname" placeholder="请输入姓名" required>
+    </div>
+    <div class="form-item">
+        <label>性别</label>
+        <select id="ssex" required>
+            <option value="">请选择性别...</option>
+            <option value="男">男</option>
+            <option value="女">女</option>
+        </select>
+    </div>
+    <div class="form-item">
+        <label>年龄（14-24）</label>
+        <input type="number" id="sage" min="14" max="24" placeholder="请输入年龄" required>
+    </div>
+    <div class="form-item">
+        <label>选择院系</label>
+        <select id="sdept" required>
+            <option value="">请选择院系...</option>
+        </select>
+    </div>
+    <div class="form-item">
+        <label>选择专业</label>
+        <select id="major" required>
+            <option value="">请先选择院系...</option>
+        </select>
+    </div>
+    <div class="form-item">
+        <label>班级（必填）</label>
+        <input type="text" id="className" placeholder="请输入班级名称" required>
+    </div>
+    <div class="form-item">
+        <label>联系电话（选填）</label>
+        <input type="text" id="phone" placeholder="请输入联系电话">
+    </div>
+
+    <button class="submit-btn" onclick="addStudent()">提交</button>
+</div>
+
+<script>
+    // 加载院系列表
+    function loadDept() {
+        fetch('/department/list')
+            .then(res => {
+                if (!res.ok) throw new Error("加载院系失败");
+                return res.json();
+            })
+            .then(res => {
+                const deptSelect = document.getElementById('sdept');
+                if (res.code === 200 && res.data.length > 0) {
+                    res.data.forEach(dept => {
+                        const option = document.createElement('option');
+                        option.value = dept.dname;
+                        option.textContent = dept.dname;
+                        deptSelect.appendChild(option);
+                    });
+                }
+            })
+            .catch(err => alert(err.message));
+    }
+
+    // 院系联动专业
+    document.getElementById('sdept').addEventListener('change', function() {
+        const sdept = this.value;
+        const majorSelect = document.getElementById('major');
+        majorSelect.innerHTML = '<option value="">加载中...</option>';
+
+        if (!sdept) {
+            majorSelect.innerHTML = '<option value="">请先选择院系...</option>';
+            return;
+        }
+
+        fetch(`/department/major/list?deptName=${encodeURIComponent(sdept)}`)
+            .then(res => {
+                if (!res.ok) throw new Error("加载专业失败");
+                return res.json();
+            })
+            .then(res => {
+                majorSelect.innerHTML = '<option value="">请选择专业...</option>';
+                if (res.code === 200 && res.data.length > 0) {
+                    res.data.forEach(major => {
+                        const option = document.createElement('option');
+                        option.value = major.majorName;
+                        option.textContent = major.majorName;
+                        majorSelect.appendChild(option);
+                    });
+                } else {
+                    majorSelect.innerHTML = '<option value="">该院系无专业</option>';
+                }
+            })
+            .catch(err => {
+                majorSelect.innerHTML = '<option value="">加载专业失败</option>';
+                alert(err.message);
+            });
+    });
+
+    // 添加学生
+    function addStudent() {
+        const sno = document.getElementById('sno').value.trim();
+        const sname = document.getElementById('sname').value.trim();
+        const ssex = document.getElementById('ssex').value;
+        const sage = document.getElementById('sage').value;
+        const sdept = document.getElementById('sdept').value;
+        const major = document.getElementById('major').value;
+        const className = document.getElementById('className').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+
+        // 校验核心参数
+        if (!sno || sno.length !== 12) {
+            alert("学号必须为12位！");
+            return;
+        }
+        if (!sname) {
+            alert("姓名不能为空！");
+            return;
+        }
+        if (!ssex) {
+            alert("性别不能为空！");
+            return;
+        }
+        if (!sage || sage < 14 || sage > 24) {
+            alert("年龄必须为14-24之间的整数！");
+            return;
+        }
+        if (!sdept) {
+            alert("院系不能为空！");
+            return;
+        }
+        if (!major) {
+            alert("专业不能为空！");
+            return;
+        }
+        if (!className) {
+            alert("班级不能为空！");
+            return;
+        }
+
+        // 构造请求参数
+        const studentData = {
+            sno: sno,
+            sname: sname,
+            ssex: ssex,
+            sage: parseInt(sage),
+            sdept: sdept,
+            major: major,
+            className: className,
+            phone: phone || "",
+            dno: "" // 由Controller自动填充
+        };
+
+        // 发送请求
+        fetch('/student/add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(studentData)
+        }).then(res => {
+            if (!res.ok) throw new Error(`接口返回异常：${res.status}`);
+            return res.json();
+        }).then(res => {
+            alert(res.msg || "添加成功");
+            if (res.code === 200) {
+                location.reload();
+            }
+        }).catch(err => {
+            alert("添加学生失败：" + err.message);
+        });
+    }
+
+    window.onload = loadDept;
+</script>
+</body>
+</html>
