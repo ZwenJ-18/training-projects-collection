@@ -1,5 +1,6 @@
 package com.scdb.studentcoursesystem.controller;
 
+import com.scdb.studentcoursesystem.annotation.RequireRole;
 import com.scdb.studentcoursesystem.entity.Result;
 import com.scdb.studentcoursesystem.entity.Sct;
 import com.scdb.studentcoursesystem.service.SctService;
@@ -29,6 +30,7 @@ public class SctController {
     /**
      * 添加选课记录
      */
+    @RequireRole({"STUDENT"})
     @PostMapping("/add")
     public Result<?> add(@RequestBody Sct sct) {
         try {
@@ -122,6 +124,7 @@ public class SctController {
     /**
      * 修改选课记录（学期/成绩）
      */
+    @RequireRole({"TEACHER", "ADMIN"})
     @PutMapping("/update")
     public Result<?> update(@RequestBody Sct sct) {
         try {
