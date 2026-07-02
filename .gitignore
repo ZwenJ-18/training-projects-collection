@@ -1,0 +1,57 @@
+# ===== IDE =====
+.idea/
+.vs/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.project
+.classpath
+*.swp
+*.swo
+*~
+
+# ===== Java =====
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+*.ctxt
+build/
+out/
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# ===== Maven =====
+dependency-reduced-pom.xml
+
+# ===== Android =====
+local.properties
+*.apk
+*.aab
+*.dex
+*.ap_
+.cxx/
+*.hprof
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ===== Node/npm (if any) =====
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# ===== Windows =====
+$RECYCLE.BIN/
