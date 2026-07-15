@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: course-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: SCDB
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - course-network
+
+  app:
+    image: maven:3.9-eclipse-temurin-17
+    container_name: course-app
+    depends_on:
+      - mysql
+    ports:
+      - "8081:8080"
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: mvn spring-boot:run
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/SCDB?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+    networks:
+      - course-network
+
+volumes:
+  mysql_data:
+
+networks:
+  course-network:
+    driver: bridge

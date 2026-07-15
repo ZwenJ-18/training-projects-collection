@@ -1,28 +1,38 @@
 spring:
-  # 核心修复：允许Bean覆盖，解决securityFilterChain重复定义问题
+  application:
+    name: student-course-service
   main:
     allow-bean-definition-overriding: true
-  # 数据库连接配置
+
   datasource:
-    url: jdbc:mysql://localhost:3306/SCDB?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
-    username: root
-    password: 123456
+    url: ${MYSQL_URL:jdbc:mysql://localhost:3306/SCDB?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true}
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:123456}
     driver-class-name: com.mysql.cj.jdbc.Driver
-  # 热部署配置
+
   devtools:
     restart:
       enabled: true
 
-# MyBatis专属配置
-mybatis:
-  type-aliases-package: com.scdb.studentcoursesystem.entity
-  mapper-locations: classpath:mapper/**/*.xml  # 指定Mapper.xml路径
-  configuration:
-    map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 打印SQL日志（便于调试）
-
-# 服务器配置
 server:
   port: 8080
   servlet:
-    context-path: /  # 上下文路径为根路径
+    context-path: /
+
+mybatis:
+  type-aliases-package: com.scdb.studentcoursesystem.entity
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.scdb.studentcoursesystem: INFO
+    org.springframework.web: WARN

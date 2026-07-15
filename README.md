@@ -1,49 +1,81 @@
-# 张文静 实训项目合集
-这是我的个人实训项目仓库，用来存放所有课程实训、课程设计相关的项目代码。
+# 张文静 · 项目作品集
+
+> 个人技术项目集合，主要使用 Java / Spring Boot 技术栈，涵盖后端服务、Web 应用与移动端实践。  
+> 欢迎访问：[https://github.com/ZwenJ-18/training-projects](https://github.com/ZwenJ-18/training-projects)
 
 ---
 
-📁 项目列表
-| 序号 | 项目名称 | 技术栈 | 项目简介 |
-|------|----------|--------|----------|
-| 1 | 实训项目1_智能聊天机器人客户端 | Android、Java | 基于Android平台的智能聊天机器人客户端，实现了用户与机器人的对话交互、消息列表展示等功能。 |
-| 2 | 实训项目2_超市积分管理系统 | Java、SpringBoot、MySQL | 实现了超市会员积分管理、商品信息管理、积分兑换、交易记录查询等核心功能。 |
-| 3 | 实训项目3_学生选课管理系统 | Java、SpringBoot、MySQL | 基于Web的学生选课管理系统，支持学生选课/退课、课程管理、成绩录入与查询等功能。 |
-| 4 | 实训项目4_高校请假系统 | ASP.NET WebForm、SQL Server、Bootstrap | 高校学生请假管理系统，实现了学生提交请假申请、教师/管理员审批、请假记录管理等功能。 |
+## 项目概览
 
-后续实训项目会持续更新，按 `实训项目N_项目名称` 的格式添加。
-
-
-
-🚀 仓库结构
-training-projects-collection/
-├── 实训项目 1_智能聊天机器人客户端 /
-├── 实训项目 2_超市积分管理系统 /
-├── 实训项目 3_学生选课管理系统 /
-├── 实训项目 4_高校请假系统 /
-├── 实训项目 5_高校请假系统（完善版）/
-├── README.md
-└── .gitignore
-
-
-
+| 序号 | 项目名称 | 技术栈 | 说明 |
+|------|----------|--------|------|
+| 1 | 零售会员积分运营平台 | Spring Boot · Spring Security · MyBatis · MySQL · Thymeleaf · SpringDoc | 面向超市/零售的会员积分管理与营销系统 |
+| 2 | 高校教务选课服务平台 | Spring Boot · MyBatis · Spring Security · MySQL · RESTful API · SpringDoc | 高校选课、成绩、统计管理 |
+| 3 | 校园智慧请假审批系统 | ASP.NET WebForm · C# · SQL Server · Bootstrap | 多级请假审批流程 |
+| 4 | 企业智能客服助手 | Android · Java · OkHttp · RecyclerView | 基于 Android 的聊天客户端 |
 
 ---
 
-🚀 使用说明
+## 项目详情
 
-1. 修改现有项目
-   - 在 "main"分支外新建功能分支进行开发
-   - 完成后合并回 "main"，保持主分支稳定
-   - 提交信息规范："feat: 新功能/ fix: 修复/docs: 文档"
+### 1. 零售会员积分运营平台
 
-2. 添加新项目
-   - 在 "main"下新建 "实训项目N_项目名称`"文件夹
-   - 放入项目完整代码（删除项目内 `.git`）
-   - `git add .` → `git commit` → `git push origin main`
+- **功能模块**：用户注册登录、商品管理、积分获取、积分兑换、订单管理、角色权限控制
+- **技术亮点**：
+  - 基于 Spring Security 实现 ADMIN / USER 双角色权限控制
+  - 使用 MyBatis 完成多表关联查询
+  - 使用 `@Transactional` 保证订单与积分操作的原子性
+  - 商品图片上传校验与本地存储映射
+  - 集成 SpringDoc 提供在线 API 文档（`/swagger-ui.html`）
+  - 提供 Docker Compose 一键启动方案
+- **运行方式**：见 `实训项目2_超市积分管理系统/.../supermarket-points-management/README.md`
+
+### 2. 高校教务选课服务平台
+
+- **功能模块**：学生选课/退课、教师成绩录入、课程管理、统计报表
+- **技术亮点**：
+  - 7 张关系型数据表设计，使用外键约束
+  - 统一响应体 `Result<T>` + 全局异常处理
+  - 防止重复选课：业务层 + 数据库联合主键双重校验
+  - 集成 SpringDoc 提供在线 API 文档（`/swagger-ui.html`）
+  - 提供 Docker Compose 一键启动方案
+- **运行方式**：见 `实训项目3_学生选课管理系统/.../student-course-system/README.md`
+
+### 3. 校园智慧请假审批系统
+
+- **功能模块**：学生请假申请、辅导员/管理员审批、历史记录查询、班级管理
+- **技术亮点**：
+  - ASP.NET WebForm + SQL Server 的 B/S 架构实践
+  - Session 登录状态与角色权限控制
+
+### 4. 企业智能客服助手
+
+- **功能模块**：消息发送、机器人回复、聊天列表展示
+- **技术亮点**：
+  - Android RecyclerView 列表渲染
+  - OkHttp 异步网络请求与 JSON 解析
+  - Handler 子线程更新 UI
 
 ---
 
-📜 版权声明
+## 技术栈
 
-本仓库所有代码均为个人课程实训作业，仅用于学习交流，禁止商用或抄袭。
+- 后端：Java、Spring Boot、Spring Security、MyBatis
+- 数据库：MySQL、SQL Server
+- 前端：HTML、CSS、JavaScript、Bootstrap、Thymeleaf
+- 移动：Android、Java
+- 工程化：Maven、Git、SpringDoc、Docker Compose
+- 工具：IntelliJ IDEA、Navicat、Postman
+
+---
+
+## 关于我
+
+- 肇庆学院 · 物联网工程专业 · 本科在读
+- 熟悉 Java Web 开发，热爱后端技术
+- 学习能力强，实习时间稳定，可每周到岗 5 天
+- 联系方式：cyzjdm11226@outlook.com
+
+---
+
+> 本仓库为个人学习项目集合，代码均为本人开发完成，仅供参考学习。
