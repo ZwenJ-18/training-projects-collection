@@ -20,10 +20,10 @@
 
 ```
 training-projects-collection/
-├── 实训项目1_智能聊天机器人客户端/
-├── retail-member-points-platform/
-├── academic-course-selection-platform/
-├── 实训项目4_高校请假系统/
+├── 企业智能客服助手/
+├── 校园智慧请假审批系统/
+├── 零售会员积分运营平台/
+├── 高校教务选课服务平台/
 ├── .gitignore
 ├── .gitattributes
 ├── CHANGELOG.md
@@ -44,7 +44,7 @@ training-projects-collection/
   - 商品图片上传校验与本地存储映射
   - 集成 SpringDoc 提供在线 API 文档（`/swagger-ui.html`）
   - 提供 Docker Compose 一键启动方案
-- **运行方式**：见 `retail-member-points-platform/supermarket-points-management/超市积分管理系统/supermarket-points-management/README.md`
+- **运行方式**：见 `零售会员积分运营平台/supermarket-points-management/超市积分管理系统/supermarket-points-management/README.md`
 
 ### 2. 高校教务选课服务平台
 
@@ -57,7 +57,7 @@ training-projects-collection/
   - Caffeine 本地缓存优化热点数据访问
   - 集成 SpringDoc 提供在线 API 文档（`/swagger-ui.html`）
   - 提供 Docker Compose 一键启动方案
-- **运行方式**：见 `academic-course-selection-platform/学生选课管理信息系统/student-course-system/README.md`
+- **运行方式**：见 `高校教务选课服务平台/学生选课管理信息系统/student-course-system/README.md`
 
 ### 3. 校园智慧请假审批系统
 
@@ -95,7 +95,7 @@ training-projects-collection/
    - 提交信息规范：`feat: / fix: / docs: / test: / chore:`
 
 2. **添加新项目**
-   - 在仓库根目录新建业务化英文目录（如 `project-name`）
+   - 在仓库根目录新建业务化中文目录（如 `项目名称`）
    - 放入项目完整代码（确保已删除子目录中的 `.git` 文件夹）
    - 按照上述提交规范提交并推送
 
