@@ -1,0 +1,25 @@
+# .NET / Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build results
+bin/
+obj/
+
+# NuGet
+packages/
+*.nupkg
+project.lock.json
+
+# IIS Express
+*.vspscc
+*.vssscc
+
+# LocalDB / SQL Server
+*.mdf
+*.ldf
+App_Data/*.mdf
+App_Data/*.ldf
