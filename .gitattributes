@@ -1,0 +1,5 @@
+# Force GitHub linguist to recognize this as primarily a Java repository
+*.html linguist-detectable=false
+*.dll linguist-detectable=false
+*.exe linguist-detectable=false
+*.xml linguist-vendored

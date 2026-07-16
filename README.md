@@ -1,7 +1,7 @@
 # 张文静 · 项目作品集
 
 > 个人技术项目集合，主要使用 Java / Spring Boot 技术栈，涵盖后端服务、Web 应用与移动端实践。  
-> 欢迎访问：[https://github.com/ZwenJ-18/training-projects](https://github.com/ZwenJ-18/training-projects)
+> 欢迎访问：[https://github.com/ZwenJ-18/training-projects-collection](https://github.com/ZwenJ-18/training-projects-collection)
 
 ---
 
@@ -10,9 +10,24 @@
 | 序号 | 项目名称 | 技术栈 | 说明 |
 |------|----------|--------|------|
 | 1 | 零售会员积分运营平台 | Spring Boot · Spring Security · MyBatis · MySQL · Thymeleaf · SpringDoc | 面向超市/零售的会员积分管理与营销系统 |
-| 2 | 高校教务选课服务平台 | Spring Boot · MyBatis · Spring Security · MySQL · RESTful API · SpringDoc | 高校选课、成绩、统计管理 |
-| 3 | 校园智慧请假审批系统 | ASP.NET WebForm · C# · SQL Server · Bootstrap | 多级请假审批流程 |
+| 2 | 高校教务选课服务平台 | Spring Boot · Spring Security · MyBatis · MySQL · JWT · Caffeine · SpringDoc | 高校选课、成绩、统计管理 |
+| 3 | 校园智慧请假审批系统 | ASP.NET WebForm · SQL Server · Bootstrap | 多级请假审批流程 |
 | 4 | 企业智能客服助手 | Android · Java · OkHttp · RecyclerView | 基于 Android 的聊天客户端 |
+
+---
+
+## 仓库结构
+
+```
+training-projects-collection/
+├── 实训项目1_智能聊天机器人客户端/
+├── 实训项目2_超市积分管理系统/
+├── 实训项目3_学生选课管理系统/
+├── 实训项目4_高校请假系统/
+├── .gitignore
+├── .gitattributes
+└── README.md
+```
 
 ---
 
@@ -37,6 +52,8 @@
   - 7 张关系型数据表设计，使用外键约束
   - 统一响应体 `Result<T>` + 全局异常处理
   - 防止重复选课：业务层 + 数据库联合主键双重校验
+  - JWT + AOP 实现基于角色的接口权限控制
+  - Caffeine 本地缓存优化热点数据访问
   - 集成 SpringDoc 提供在线 API 文档（`/swagger-ui.html`）
   - 提供 Docker Compose 一键启动方案
 - **运行方式**：见 `实训项目3_学生选课管理系统/.../student-course-system/README.md`
@@ -66,6 +83,20 @@
 - 移动：Android、Java
 - 工程化：Maven、Git、SpringDoc、Docker Compose
 - 工具：IntelliJ IDEA、Navicat、Postman
+
+---
+
+## 使用说明
+
+1. **修改现有项目**
+   - 从 `main` 分支新建功能分支进行开发
+   - 完成后通过 Pull Request 合并回 `main`，保持主分支稳定
+   - 提交信息规范：`feat: / fix: / docs: / test: / chore:`
+
+2. **添加新项目**
+   - 在仓库根目录新建 `实训项目N_项目名称` 文件夹
+   - 放入项目完整代码（确保已删除子目录中的 `.git` 文件夹）
+   - 按照上述提交规范提交并推送
 
 ---
 
