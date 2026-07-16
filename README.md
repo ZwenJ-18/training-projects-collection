@@ -11,9 +11,8 @@
 |------|----------|--------|------|
 | 1 | 零售会员积分运营平台 | Spring Boot · Spring Security · MyBatis · MySQL · Thymeleaf · SpringDoc | 面向超市/零售的会员积分管理与营销系统 |
 | 2 | 高校教务选课服务平台 | Spring Boot · Spring Security · MyBatis · MySQL · JWT · Caffeine · SpringDoc | 高校选课、成绩、统计管理 |
-| 3 | 校园智慧请假审批系统 | ASP.NET WebForm · SQL Server · Bootstrap | 多级请假审批流程（基础版） |
-| 4 | 高校智慧请假管理云平台 | ASP.NET WebForms · C# · SQL Server · Bootstrap 5 | 多级请假审批、数据统计、移动端适配（进阶版） |
-| 5 | 企业智能客服助手 | Android · Java · OkHttp · RecyclerView | 基于 Android 的聊天客户端 |
+| 3 | 高校智慧请假管理云平台 | ASP.NET WebForms · C# · SQL Server · Bootstrap 5 | 多级请假审批、数据统计、移动端适配 |
+| 4 | 企业智能客服助手 | Android · Java · OkHttp · RecyclerView | 基于 Android 的聊天客户端 |
 
 ---
 
@@ -22,7 +21,6 @@
 ```
 training-projects-collection/
 ├── 企业智能客服助手/
-├── 校园智慧请假审批系统/
 ├── 高校智慧请假管理云平台/
 ├── 零售会员积分运营平台/
 ├── 高校教务选课服务平台/
@@ -61,14 +59,7 @@ training-projects-collection/
   - 提供 Docker Compose 一键启动方案
 - **运行方式**：见 `高校教务选课服务平台/学生选课管理信息系统/student-course-system/README.md`
 
-### 3. 校园智慧请假审批系统
-
-- **功能模块**：学生请假申请、辅导员/管理员审批、历史记录查询、班级管理
-- **技术亮点**：
-  - ASP.NET WebForm + SQL Server 的 B/S 架构实践
-  - Session 登录状态与角色权限控制
-
-### 4. 高校智慧请假管理云平台
+### 3. 高校智慧请假管理云平台
 
 - **功能模块**：学生请假申请、辅导员审批、院长终审（>3天）、班级与学生维度数据统计、用户管理、修改密码
 - **技术亮点**：
@@ -79,7 +70,7 @@ training-projects-collection/
   - 角色权限控制：学生 / 辅导员 / 院长（领导）
 - **运行方式**：见 `高校智慧请假管理云平台/README.md`
 
-### 5. 企业智能客服助手
+### 4. 企业智能客服助手
 
 - **功能模块**：消息发送、机器人回复、聊天列表展示
 - **技术亮点**：

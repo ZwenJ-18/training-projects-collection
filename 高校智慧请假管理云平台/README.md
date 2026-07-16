@@ -49,8 +49,8 @@
 ## 快速启动
 
 ### 方式一：Visual Studio 一键运行
-1. 使用 Visual Studio 打开 `WebLab5/WebLab5.sln`（若无 sln 文件，可直接打开 WebLab5 文件夹或 csproj）
-2. 确认 `Web.config` 中连接字符串指向可用的 SQL Server / LocalDB 实例
+1. 使用 Visual Studio 打开 `WebLab5.slnx` 或直接打开项目根目录
+2. 确认 `src/Web.config` 中连接字符串指向可用的 SQL Server / LocalDB 实例
 3. 按 `F5` 运行，系统自动完成数据库初始化
 
 ### 方式二：SQL 脚本初始化
@@ -71,8 +71,8 @@ SQLQuery3.sql
 
 ```
 高校智慧请假管理云平台/
-├── WebLab5/                        # ASP.NET WebForms 项目
-│   ├── Admin.aspx                  # 院长/领导审批台
+├── src/                             # ASP.NET WebForms 主项目
+│   ├── Admin.aspx                   # 院长/领导审批台
 │   ├── Teacher.aspx                # 辅导员审批台
 │   ├── Student.aspx                # 学生请假申请
 │   ├── Login.aspx                  # 统一登录页
@@ -93,4 +93,4 @@ SQLQuery3.sql
 
 ## 更新日志
 
-- 2026-07：项目企业化升级，更名「高校智慧请假管理云平台」，统一页面文案，移除测试外链，补充 README
+- 2026-07：统一页面品牌名称为「高校智慧请假管理云平台」，整理项目结构，补充运行文档
