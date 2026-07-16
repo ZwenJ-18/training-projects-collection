@@ -44,7 +44,7 @@ training-projects-collection/
   - 商品图片上传校验与本地存储映射
   - 集成 SpringDoc 提供在线 API 文档（`/swagger-ui.html`）
   - 提供 Docker Compose 一键启动方案
-- **运行方式**：见 `retail-member-points-platform/supermarket-points-management/README.md`
+- **运行方式**：见 `retail-member-points-platform/supermarket-points-management/超市积分管理系统/supermarket-points-management/README.md`
 
 ### 2. 高校教务选课服务平台
 
